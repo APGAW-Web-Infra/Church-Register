@@ -85,4 +85,56 @@ class ChurchOperationsFoundationTest extends TestCase
             'address' => 'G144 IREDAPO QUARTERS',
         ]);
     }
+
+    public function test_profile_edit_returns_date_of_birth_in_browser_safe_format(): void
+    {
+        $user = User::factory()->create([
+            'name' => 'Birthday User',
+            'email' => 'birthday@example.com',
+            'date_of_birth' => '1998-03-17',
+        ]);
+
+        $this->actingAs($user)
+            ->get(route('profile.edit'))
+            ->assertInertia(fn ($page) => $page
+                ->where('user.date_of_birth', '1998-03-17'));
+    }
+
+    public function test_profile_update_saves_all_personal_fields(): void
+    {
+        $user = User::factory()->create([
+            'name' => 'Profile Saver',
+            'email' => 'profile.saver@example.com',
+        ]);
+
+        $this->actingAs($user)
+            ->patch(route('profile.update'), [
+                'name' => 'Profile Saver',
+                'email' => 'profile.saver@example.com',
+                'phone' => '+2348123456789',
+                'address' => '12 Main Street, Ikeja',
+                'sector' => 'technology',
+                'education_level' => 'masters',
+                'skills_of_interest' => ['Cybersecurity', 'Software Development'],
+                'state' => 'Lagos',
+                'lga' => 'Ikeja',
+                'nin' => '12345678901',
+                'passport_number' => 'A12345678',
+                'referral_code' => '',
+            ])
+            ->assertRedirect(route('profile.edit'));
+
+        $this->assertDatabaseHas('users', [
+            'id' => $user->id,
+            'address' => '12 Main Street, Ikeja',
+            'sector' => 'technology',
+            'education_level' => 'masters',
+            'state' => 'Lagos',
+            'lga' => 'Ikeja',
+            'nin' => '12345678901',
+            'passport_number' => 'A12345678',
+        ]);
+
+        $this->assertSame(['Cybersecurity', 'Software Development'], $user->fresh()->skills_of_interest);
+    }
 }

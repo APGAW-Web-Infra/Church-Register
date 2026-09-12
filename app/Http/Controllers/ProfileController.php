@@ -36,6 +36,15 @@ class ProfileController extends Controller
         // Load the user's profile and roles
         $user->load(['profile', 'roles', 'permissions']);
 
+        $userForView = $user->toArray();
+        $userForView['date_of_birth'] = $user->date_of_birth?->toDateString();
+
+        if ($user->memberProfile) {
+            $memberProfileForView = $user->memberProfile->toArray();
+            $memberProfileForView['date_of_birth'] = $user->memberProfile->date_of_birth?->toDateString();
+            $userForView['memberProfile'] = $memberProfileForView;
+        }
+
         // Available sectors for dropdown
         $sectors = [
             ['id' => 'technology', 'name' => 'Technology'],
@@ -121,7 +130,7 @@ class ProfileController extends Controller
         return Inertia::render('Profile/Edit', [
             'mustVerifyEmail' => $user instanceof MustVerifyEmail,
             'status' => session('status'),
-            'user' => $user,
+            'user' => $userForView,
             'dashboardContext' => $user->getDashboardContext(),
             'sectors' => $sectors,
             'businessTypes' => $businessTypes,

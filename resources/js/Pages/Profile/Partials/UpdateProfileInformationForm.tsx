@@ -67,21 +67,40 @@ export default function UpdateProfileInformationForm({
         referral_code: string;
         profile_photo: File | null;
     }>({
-        name: user.name,
-        email: user.email,
-        phone: user.phone || '',
-        address: user.address || '',
-        sector: user.sector || '',
-        date_of_birth: user.date_of_birth || '',
-        education_level: user.education_level || '',
+        name: (user.name ?? '').trim(),
+        email: (user.email ?? '').trim(),
+        phone: (user.phone ?? '').trim(),
+        address: (user.address ?? '').trim(),
+        sector: (user.sector ?? '').trim(),
+        date_of_birth: (user.date_of_birth ?? '').trim(),
+        education_level: (user.education_level ?? '').trim(),
         skills_of_interest: Array.isArray(user.skills_of_interest) ? user.skills_of_interest.join(', ') : (typeof user.skills_of_interest === 'string' ? user.skills_of_interest : ''),
-        state: user.state || '',
-        lga: user.lga || '',
-        nin: user.nin || '',
-        passport_number: user.passport_number || '',
-        referral_code: user.referral_code || '',
+        state: (user.state ?? '').trim(),
+        lga: (user.lga ?? '').trim(),
+        nin: (user.nin ?? '').trim(),
+        passport_number: (user.passport_number ?? '').trim(),
+        referral_code: (user.referral_code ?? '').trim(),
         profile_photo: null,
     });
+
+    useEffect(() => {
+        setData('name', (user.name ?? '').trim());
+        setData('email', (user.email ?? '').trim());
+        setData('phone', (user.phone ?? '').trim());
+        setData('address', (user.address ?? '').trim());
+        setData('sector', (user.sector ?? '').trim());
+        setData('date_of_birth', (user.date_of_birth ?? '').trim());
+        setData('education_level', (user.education_level ?? '').trim());
+        setData('skills_of_interest', Array.isArray(user.skills_of_interest)
+            ? user.skills_of_interest.join(', ')
+            : (typeof user.skills_of_interest === 'string' ? user.skills_of_interest : ''));
+        setData('state', (user.state ?? '').trim());
+        setData('lga', (user.lga ?? '').trim());
+        setData('nin', (user.nin ?? '').trim());
+        setData('passport_number', (user.passport_number ?? '').trim());
+        setData('referral_code', (user.referral_code ?? '').trim());
+        setData('profile_photo', null);
+    }, [user]);
 
     const [statesList, setStatesList] = useState<string[]>([]);
     const [lgasList, setLgasList] = useState<string[]>([]);
@@ -138,6 +157,15 @@ export default function UpdateProfileInformationForm({
 
         const submitData = {
             ...data,
+            name: String(data.name ?? '').trim(),
+            email: String(data.email ?? '').trim(),
+            phone: String(data.phone ?? '').trim(),
+            address: String(data.address ?? '').trim(),
+            state: String(data.state ?? '').trim(),
+            lga: String(data.lga ?? '').trim(),
+            nin: String(data.nin ?? '').trim(),
+            passport_number: String(data.passport_number ?? '').trim(),
+            referral_code: String(data.referral_code ?? '').trim(),
             skills_of_interest: data.skills_of_interest
                 ? data.skills_of_interest.split(',').map(skill => skill.trim()).filter(skill => skill)
                 : [],
