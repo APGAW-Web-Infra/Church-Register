@@ -53,4 +53,36 @@ class ChurchOperationsFoundationTest extends TestCase
         $this->assertEquals('Jane', $user->memberProfile->first_name);
         $this->assertEquals('main_service', $user->attendanceRecords()->first()->service_type);
     }
+
+    public function test_profile_update_creates_a_member_profile_when_missing(): void
+    {
+        $user = User::factory()->create([
+            'name' => 'Emmanuel Adesanmi',
+            'email' => 'emmanuel@example.com',
+            'phone' => '+2348146373835',
+            'address' => 'G144 IREDAPO QUARTERS',
+        ]);
+
+        $this->assertNull($user->memberProfile()->first());
+
+        $this->actingAs($user)
+            ->patch(route('profile.update'), [
+                'name' => 'Emmanuel Adesanmi',
+                'email' => 'emmanuel@example.com',
+                'phone' => '+2348146373835',
+                'address' => 'G144 IREDAPO QUARTERS',
+                'referral_code' => '',
+                'state' => 'lagos',
+                'lga' => 'ikeja',
+            ])
+            ->assertRedirect(route('profile.edit'));
+
+        $this->assertNotNull($user->fresh()->memberProfile);
+        $this->assertDatabaseHas('member_profiles', [
+            'user_id' => $user->id,
+            'first_name' => 'Emmanuel Adesanmi',
+            'phone' => '+2348146373835',
+            'address' => 'G144 IREDAPO QUARTERS',
+        ]);
+    }
 }

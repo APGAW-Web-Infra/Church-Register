@@ -136,7 +136,6 @@ export default function UpdateProfileInformationForm({
     const submit: FormEventHandler = (e) => {
         e.preventDefault();
 
-        // Convert skills back to array
         const submitData = {
             ...data,
             skills_of_interest: data.skills_of_interest
@@ -144,7 +143,10 @@ export default function UpdateProfileInformationForm({
                 : [],
         };
 
-        patch(route('profile.update'), { forceFormData: true });
+        patch(route('profile.update'), {
+            ...submitData,
+            forceFormData: true,
+        });
     };
 
     return (

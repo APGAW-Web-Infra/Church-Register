@@ -175,6 +175,25 @@ class ProfileController extends Controller
 
         $user->save();
 
+        if (!$user->memberProfile) {
+            $user->memberProfile()->create([
+                'first_name' => $user->name,
+                'last_name' => null,
+                'phone' => $user->phone,
+                'address' => $user->address,
+                'date_of_birth' => $user->date_of_birth,
+                'membership_status' => 'first_timer',
+                'is_active' => true,
+            ]);
+        } else {
+            $user->memberProfile()->update([
+                'first_name' => $user->name,
+                'phone' => $user->phone,
+                'address' => $user->address,
+                'date_of_birth' => $user->date_of_birth,
+            ]);
+        }
+
         // Update or create user profile based on current role
         $this->updateProfileForRole($user, $request);
         $this->updateReferralInvitation($user, $request);

@@ -77,71 +77,8 @@ export default function AbsenteeBoard({ absentees, flash }: { absentees: Absente
                 </section>
 
                 <div className="mb-8 rounded-3xl border border-red-100 bg-white p-5 shadow-sm">
-                    <h2 className="mb-4 text-lg font-semibold text-slate-900">Record absentee</h2>
-                    <form onSubmit={submit} className="grid gap-4 md:grid-cols-2">
-                        <label className="text-sm font-medium text-slate-700">
-                            Member name
-                            <input
-                                value={data.member_name}
-                                onChange={(event) => setData('member_name', event.target.value)}
-                                className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm"
-                                required
-                            />
-                        </label>
-                        <label className="text-sm font-medium text-slate-700">
-                            Service type
-                            <select
-                                value={data.service_type}
-                                onChange={(event) => setData('service_type', event.target.value)}
-                                className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm"
-                            >
-                                <option value="main_service">Main Service</option>
-                                <option value="sunday_school">Sunday School</option>
-                                <option value="workers_meeting">Workers Meeting</option>
-                                <option value="outreach">Outreach</option>
-                            </select>
-                        </label>
-                        <label className="text-sm font-medium text-slate-700">
-                            Service date
-                            <input
-                                type="date"
-                                value={data.service_date}
-                                onChange={(event) => setData('service_date', event.target.value)}
-                                className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm"
-                                required
-                            />
-                        </label>
-                        <label className="text-sm font-medium text-slate-700">
-                            Status
-                            <select
-                                value={data.status}
-                                onChange={(event) => setData('status', event.target.value)}
-                                className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm"
-                            >
-                                <option value="absent">Absent</option>
-                                <option value="excused">Excused</option>
-                                <option value="late">Late</option>
-                            </select>
-                        </label>
-                        <label className="text-sm font-medium text-slate-700 md:col-span-2">
-                            Reason
-                            <textarea
-                                value={data.reason}
-                                onChange={(event) => setData('reason', event.target.value)}
-                                rows={3}
-                                className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm"
-                            />
-                        </label>
-                        <div className="md:col-span-2">
-                            <button
-                                type="submit"
-                                disabled={processing}
-                                className="rounded-full bg-red-600 px-5 py-2.5 text-sm font-semibold text-white disabled:bg-red-300"
-                            >
-                                {processing ? 'Saving...' : 'Record Absence'}
-                            </button>
-                        </div>
-                    </form>
+                    <h2 className="mb-2 text-lg font-semibold text-slate-900">Auto-generated absentee list</h2>
+                    <p className="text-sm text-slate-600">Absentees are derived from the Sunday service register. If a member is not marked present, late, or excused for a service date, the record is automatically treated as absent.</p>
                 </div>
 
                 <div className="overflow-hidden rounded-3xl border border-red-100 bg-white shadow-sm">

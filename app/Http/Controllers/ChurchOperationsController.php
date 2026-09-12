@@ -584,12 +584,42 @@ class ChurchOperationsController extends Controller
 
     public function absentees(Request $request)
     {
-        $absentees = ChurchAbsentee::query()
+        $latestServiceDates = AttendanceRecord::query()
+            ->where('service_type', 'main_service')
+            ->whereIn('status', ['absent', 'excused'])
+            ->selectRaw('DISTINCT DATE(service_date) as service_date')
             ->orderByDesc('service_date')
-            ->get();
+            ->limit(30)
+            ->pluck('service_date');
+
+        $absentees = collect();
+
+        foreach ($latestServiceDates as $serviceDate) {
+            $records = AttendanceRecord::query()
+                ->where('service_type', 'main_service')
+                ->whereDate('service_date', $serviceDate)
+                ->whereIn('status', ['absent', 'excused'])
+                ->with('memberProfile')
+                ->get();
+
+            foreach ($records as $record) {
+                $memberName = $record->memberProfile
+                    ? trim(($record->memberProfile->first_name ?? '') . ' ' . ($record->memberProfile->last_name ?? ''))
+                    : ($record->user?->name ?? 'Unknown member');
+
+                $absentees->push([
+                    'id' => $record->id,
+                    'member_name' => $memberName,
+                    'reason' => $record->notes,
+                    'service_type' => $record->service_type,
+                    'service_date' => $record->service_date->format('Y-m-d'),
+                    'status' => $record->status,
+                ]);
+            }
+        }
 
         return Inertia::render('Church/AbsenteeBoard', [
-            'absentees' => $absentees,
+            'absentees' => $absentees->sortByDesc('service_date')->values()->all(),
             'flash' => [
                 'success' => $request->session()->get('success'),
             ],
@@ -598,23 +628,10 @@ class ChurchOperationsController extends Controller
 
     public function storeAbsentee(Request $request)
     {
-        $validated = $request->validate([
-            'member_name' => ['required', 'string', 'max:255'],
-            'reason' => ['nullable', 'string'],
-            'service_type' => ['required', 'string', 'max:50'],
-            'service_date' => ['required', 'date'],
-            'status' => ['required', 'in:absent,excused,late'],
-        ]);
-
-        ChurchAbsentee::create([
-            'member_name' => $validated['member_name'],
-            'reason' => $validated['reason'] ?? null,
-            'service_type' => $validated['service_type'],
-            'service_date' => $validated['service_date'],
-            'status' => $validated['status'],
-        ]);
-
-        return redirect()->route('church-admin.absentees')->with('success', 'Absentee record saved successfully.');
+        return redirect()->route('church-admin.absentees')->with(
+            'success',
+            'Absentee records are generated automatically from the service register. No manual absentee entry is required.'
+        );
     }
 
     public function workersMeetings(Request $request)

@@ -31,6 +31,185 @@ class ChurchAdminDashboardTest extends TestCase
         $response->assertOk();
     }
 
+    public function test_church_admin_dashboard_reports_member_lifecycle_breakdown(): void
+    {
+        $user = $this->admin();
+
+        \App\Models\MemberProfile::create([
+            'user_id' => $user->id,
+            'first_name' => 'Ada',
+            'last_name' => 'Member',
+            'membership_status' => 'member',
+            'is_active' => true,
+        ]);
+
+        \App\Models\MemberProfile::create([
+            'user_id' => $user->id,
+            'first_name' => 'Ben',
+            'last_name' => 'Visitor',
+            'membership_status' => 'first_timer',
+            'is_active' => true,
+        ]);
+
+        \App\Models\MemberProfile::create([
+            'user_id' => $user->id,
+            'first_name' => 'Cora',
+            'last_name' => 'Inactive',
+            'membership_status' => 'member',
+            'is_active' => false,
+        ]);
+
+        $response = $this
+            ->actingAs($user)
+            ->get('/church-admin');
+
+        $response->assertOk();
+        $response->assertInertia(fn ($page) => $page
+            ->where('churchData.memberLifecycle.total_active_members', 1)
+            ->where('churchData.memberLifecycle.total_first_timers', 1)
+            ->where('churchData.memberLifecycle.total_inactive_members', 1)
+            ->where('churchData.memberLifecycle.needs_follow_up', 2)
+        );
+    }
+
+    public function test_church_admin_dashboard_lists_member_follow_up_queue(): void
+    {
+        $user = $this->admin();
+
+        \App\Models\MemberProfile::create([
+            'user_id' => $user->id,
+            'first_name' => 'First',
+            'last_name' => 'Timer',
+            'membership_status' => 'first_timer',
+            'is_active' => true,
+            'department' => 'Youth',
+        ]);
+
+        \App\Models\MemberProfile::create([
+            'user_id' => $user->id,
+            'first_name' => 'Away',
+            'last_name' => 'Member',
+            'membership_status' => 'member',
+            'is_active' => false,
+            'department' => 'Prayer',
+        ]);
+
+        $response = $this
+            ->actingAs($user)
+            ->get('/church-admin');
+
+        $response->assertOk();
+        $response->assertInertia(fn ($page) => $page
+            ->where('churchData.followUpQueue.0.name', 'First Timer')
+            ->where('churchData.followUpQueue.0.reason', 'first_timer_follow_up')
+            ->where('churchData.followUpQueue.1.name', 'Away Member')
+            ->where('churchData.followUpQueue.1.reason', 'inactive_member_follow_up')
+        );
+    }
+
+    public function test_church_admin_dashboard_reports_referral_conversion_and_onboarding_completion(): void
+    {
+        $user = $this->admin();
+
+        $completedInvitee = User::factory()->create(['email' => 'completed-invitee@example.com']);
+        $pendingInvitee = User::factory()->create(['email' => 'pending-invitee@example.com']);
+
+        $completedInvitee->memberProfile()->create([
+            'first_name' => 'Completed',
+            'last_name' => 'Member',
+            'membership_status' => 'member',
+            'is_active' => true,
+            'profile_completed_at' => now(),
+        ]);
+
+        $pendingInvitee->memberProfile()->create([
+            'first_name' => 'Pending',
+            'last_name' => 'Member',
+            'membership_status' => 'member',
+            'is_active' => true,
+        ]);
+
+        \App\Models\ChurchInvitation::create([
+            'inviter_id' => $user->id,
+            'invitee_id' => $completedInvitee->id,
+            'referral_code' => $user->referral_code,
+            'registered_at' => now()->subDay(),
+            'validated_at' => now(),
+        ]);
+
+        \App\Models\ChurchInvitation::create([
+            'inviter_id' => $user->id,
+            'invitee_id' => $pendingInvitee->id,
+            'referral_code' => $user->referral_code,
+            'registered_at' => now()->subDay(),
+        ]);
+
+        $response = $this
+            ->actingAs($user)
+            ->get('/church-admin');
+
+        $response->assertOk();
+        $response->assertInertia(fn ($page) => $page
+            ->where('churchData.referralConversion.total', 2)
+            ->where('churchData.referralConversion.validated', 1)
+            ->where('churchData.referralConversion.pending', 1)
+            ->where('churchData.referralConversion.rate', 50)
+            ->where('churchData.onboardingCompletion.total', 2)
+            ->where('churchData.onboardingCompletion.completed', 1)
+            ->where('churchData.onboardingCompletion.incomplete', 1)
+            ->where('churchData.onboardingCompletion.rate', 50)
+        );
+    }
+
+    public function test_church_admin_dashboard_lists_member_engagement_pipeline_tasks(): void
+    {
+        $user = $this->admin();
+
+        $newInvitee = User::factory()->create(['email' => 'new-invitee@example.com']);
+        $newInvitee->memberProfile()->create([
+            'first_name' => 'New',
+            'last_name' => 'Invitee',
+            'membership_status' => 'member',
+            'is_active' => true,
+        ]);
+
+        $incompleteMember = \App\Models\MemberProfile::create([
+            'user_id' => $user->id,
+            'first_name' => 'Incomplete',
+            'last_name' => 'Member',
+            'membership_status' => 'member',
+            'is_active' => true,
+        ]);
+
+        \App\Models\MemberProfile::create([
+            'user_id' => $user->id,
+            'first_name' => 'Away',
+            'last_name' => 'Member',
+            'membership_status' => 'member',
+            'is_active' => false,
+            'department' => 'Prayer',
+        ]);
+
+        \App\Models\ChurchInvitation::create([
+            'inviter_id' => $user->id,
+            'invitee_id' => $newInvitee->id,
+            'referral_code' => $user->referral_code,
+            'registered_at' => now()->subDay(),
+        ]);
+
+        $response = $this
+            ->actingAs($user)
+            ->get('/church-admin');
+
+        $response->assertOk();
+        $response->assertInertia(fn ($page) => $page
+            ->where('churchData.engagementPipeline.0.task_type', 'pending_referral_follow_up')
+            ->where('churchData.engagementPipeline.0.priority', 'high')
+            ->where('churchData.engagementPipeline.1.task_type', 'incomplete_onboarding')
+            ->where('churchData.engagementPipeline.2.task_type', 'inactive_member_recovery')
+        );
+    }
+
     public function test_dashboard_summary_cards_are_driven_by_real_church_data(): void
     {
         $user = $this->admin();

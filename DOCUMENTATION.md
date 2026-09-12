@@ -181,11 +181,38 @@ The next milestone after reporting and dashboard polish is operational clarity: 
 - The dashboard now behaves like a church operations command center rather than a static summary page.
 - Validation remains focused on real backend behavior, not decorative placeholders.
 
+### Progress Update - 2026-09-12 (Referral, onboarding, and outreach intelligence)
+
+The church admin dashboard now includes live operational intelligence beyond attendance and lifecycle counts.
+
+- Added referral conversion tracking from invitation registration and validation data, including total invites, validated invites, pending invites, and conversion rate.
+- Added onboarding completion tracking from invitee member profile completion data, measuring completed vs incomplete member setup and onboarding rate.
+- Added an outreach pipeline that surfaces the highest-priority follow-up actions in the correct order: pending referral follow-up, incomplete onboarding, then inactive member recovery.
+- Updated the admin dashboard with a premium summary block and a staff-facing outreach queue so leaders can act on referral conversions and member recovery without static placeholders.
+- Added regression coverage proving the exact values and ordering populate from the live database and remain aligned with real church workflow data.
+- Verification evidence: the dashboard feature suite passed with 33 tests and 325 assertions after the latest update.
+
+This milestone strengthens the admin command center and keeps the work focused on church-growth operations rather than decorative tooling.
+
 ### Version History
 
 | Version | Date | Changes |
 |---------|------|---------|
+| 3.4 | 2026-09-12 | Service-register attendance now auto-generates absent records for unmarked active members and the absentee board is treated as a derived follow-up view instead of a manual-entry form |
+| 3.3 | 2026-09-12 | Added the engagement pipeline for referral follow-up, incomplete onboarding, and inactive member recovery to the church admin dashboard; documented the verified outreach workflow |
+| 3.2 | 2026-09-12 | Added live referral conversion and onboarding completion metrics to the church admin dashboard; documented the verified operations milestone and regression evidence |
 | 3.1 | 2026-09-12 | Admin dashboard refreshed into a premium operations center with live quick actions; reporting and roadmap documentation aligned with the current ministry-growth and deployment priorities |
+
+### Operational Milestone Update - 2026-09-12
+
+The current non-deployment operational milestone is now focused on resilience and data integrity, in line with the church’s required workflow boundaries:
+
+- Backup and rollback rehearsal: create a database snapshot before major church-data changes, verify the restore path on a safe copy, and document the exact commands and rollback steps. This is a rehearsal and runbook step only; no production deployment action is performed during this stage.
+- Security review: confirm that the admin/member data paths are read/write guarded by the correct role policy, that service-register attendance is only editable by `admin`/`super_admin`, and that absentee data remains a derived report from the attendance register rather than a freeform manual input surface.
+- Data-source integrity: the service register is the system-of-record for Sunday attendance. Members who are active and not explicitly marked present, late, or excused are treated as absent automatically, and the absentee board follows that derived record set rather than allowing ad-hoc manual entries.
+- Documentation sync: the admin, reports, and absentee workflow are now recorded as live operational behavior rather than aspirational plans.
+
+This milestone deliberately excludes production validation and deployment sign-off, as requested, while preserving the required church operations governance around attendance, admin actions, and member data safety.
 
 ### Progress Update - 2026-09-03
 
@@ -579,125 +606,101 @@ The public site now includes:
 - Expanded church-brand polish across remaining public pages ✅ refreshed with APGA Worldwide church identity on the remaining public-facing pages
 
 ### Strategic conclusion
-The project now has a valid church operations foundation instead of only a generic institutional platform. The core domain and admin structure are in place, the public-facing church brand has been strengthened, and the reporting pipeline now includes meaningful server-backed analytics and PDF export support. The next phase is focused security and regression testing, richer reporting and media, and deployment readiness; newsletter infrastructure is deferred by direction.
+The project has moved past the basic scaffold stage and now operates as a real church-management platform with live data flows, protected admin operations, member-facing pages, and functioning reporting. The remaining work is no longer about basic setup; it is about advancing the church workflow layer, improving operational automation, and tightening the member experience.
+
+The next major milestone is not deployment. The next major milestone is to complete the operational backbone that turns the app from a working system into a reliable church operating platform: member onboarding and lifecycle management, smarter admin workflows, stronger reporting automation, and a more complete member engagement experience.
 
 ---
 
-## What Is Left To Do (TODO)
+## Next Major Milestones
 
-### Phase 1: Backend Core Features (Priority: HIGH)
+### Priority 1: Member Lifecycle & Onboarding Automation
+**Goal**: move from basic member records to a complete lifecycle process.
 
-#### 1. Church-Specific Models & Database Tables
-**Status**: ✅ Core church models implemented; additional lifecycle models remain
+**Focus areas:**
+- member onboarding review workflow for new registrations and referrals
+- status tracking for active, inactive, and first-timer members
+- onboarding checklists for profile completion, photo verification, and ministry assignment
+- referral conversion and follow-up tracking after registration
+- better admin visibility into who needs outreach or follow-up
 
-**Required Tables:**
-- `member_profiles` - Church member profiles, birthdays, contact info, and status
-- `minister_profiles` - Official portraits, bios, and social handles for ministers
-- `unit_head_profiles` - Official portraits, bios, and social handles for unit heads
-- `attendance_records` - Track member attendance at services and special church events
-- `service_types` - Sunday school, main service, workers meeting, outreach, etc.
-- `invitation_tracking` - Track weekly, monthly, and yearly invitations
-- `prayer_requests` - Store prayer request submissions
-- `event_schedules` - Define recurring church services and programs
-- `weekly_reports` - Weekly church summary reports
-- `monthly_reports` - Monthly church reports
-- `quarterly_reports` - Quarterly church reports
-- `annual_reports` - Annual church reports
-- `attendance_screening` - Absentee display data for the 6x3 visual attendance screen
-- `workers_meetings` - Meeting notes and agenda summaries
-- `church_interviews` - Gospel/music/VIP interview content
+**Why this matters:**
+This is the closest step to turning the system into a practical church operations platform instead of a static admin dashboard.
 
-**Eloquent Models to Create:**
-```
-app/Models/
-├── MemberProfile.php
-├── MinisterProfile.php
-├── UnitHeadProfile.php
-├── AttendanceRecord.php
-├── ServiceType.php
-├── InvitationTracking.php
-├── PrayerRequest.php
-├── EventSchedule.php
-├── WeeklyReport.php
-├── MonthlyReport.php
-├── QuarterlyReport.php
-├── AnnualReport.php
-├── AttendanceScreening.php
-├── WorkersMeeting.php
-├── ChurchInterview.php
-```
+### Priority 2: Church Operations Workflow Automation
+**Goal**: reduce manual admin work and keep the church responsive in real time.
 
-#### 2. API Endpoints (REST/JSON)
-**Status**: ⏳ Partial; current church workflows primarily use Laravel web/Inertia routes
+**Focus areas:**
+- event reminders and registration follow-ups
+- prayer request follow-up states and response tracking
+- announcement and message automation for ministry leaders
+- direct communication flows between members and church staff
+- attendance follow-up for absentees, first-timers, and ministry leaders
 
-**Attendance Management:**
-- `POST /api/attendance/mark` - Mark member attendance
-- `GET /api/attendance/stats` - Get attendance statistics
-- `GET /api/attendance/trends` - Get attendance trends
-- `GET /api/attendance/report` - Generate attendance reports
+**Why this matters:**
+These workflows create the real value of a church system beyond reporting and page browsing.
 
-**Invitation Tracking:**
-- `POST /api/invitations/record` - Record new invitation
-- `GET /api/invitations/leaderboard` - Get top inviters
-- `GET /api/invitations/stats` - Get invitation statistics
+### Priority 3: Reporting Intelligence & Experience Refinement
+**Goal**: make the dashboards and reporting useful to leaders, not just technically correct.
 
-**Prayer Requests:**
-- `POST /api/prayer-requests` - Submit prayer request
-- `GET /api/prayer-requests` - Get prayer requests feed
-- `PUT /api/prayer-requests/{id}` - Update prayer request
-- `DELETE /api/prayer-requests/{id}` - Delete prayer request
+**Focus areas:**
+- richer ministry-by-ministry trend comparisons
+- better attendance and invitation narrative summaries
+- clearer PDF print/export packages for leadership meetings
+- mobile-friendly dashboard polish across admin and member screens
+- more complete report drilldowns for members, leaders, and departments
 
-**Event Management:**
-- `GET /api/events` - List upcoming events
-- `POST /api/events` - Create new event
-- `PUT /api/events/{id}` - Update event
-- `POST /api/events/{id}/register` - Register for event
-- `GET /api/events/{id}/attendees` - Get event attendees
+**Why this matters:**
+The system already has valid data and solid reporting logic; the next improvement is clarity, decision support, and leadership usability.
 
-**Member Directory:**
-- `GET /api/members` - List members
-- `GET /api/members/{id}` - Get member profile
-- `PUT /api/members/{id}` - Update member profile
-- `GET /api/members/search` - Search members
+### Priority 4: Product Hardening & Maintenance
+**Goal**: keep the platform stable for real usage.
 
-#### 3. Authentication & Authorization
-**Status**: ⏳ In progress (base Laravel authentication and Spatie permissions exist)
+**Focus areas:**
+- final validation of role-specific access paths
+- repeated workflow testing for member/admin actions
+- cleanup of edge cases in profile, attendance, and reporting flows
+- backlog cleanup for stale or duplicate functionality
+- improved documentation and runbooks for future contributors
 
-**Tasks:**
-- [ ] Create role-based access control for church positions
-- [ ] Define permissions for each role (Admin, Pastor, Leader, Member, Visitor)
-- [ ] Implement authorization middleware
-- [ ] Create admin seeder for initial setup
-- [ ] Setup email verification for new registrations
-- [ ] Implement two-factor authentication option
+**Why this matters:**
+This keeps the app maintainable as the church grows and more people rely on it.
 
-**Roles to Define:**
-- **Admin** - Full system access, user management
-- **Pastor** - Leadership, event creation, attendance viewing
-- **Small Group Leader** - Lead group, track attendance, prayer requests
-- **Member** - Full platform access, attendance, invitations
-- **Visitor** - Limited access, event viewing, registration
+---
 
-### Phase 2: Frontend Components & Pages (Priority: HIGH)
+## Current State Checklist
 
-#### 1. Church Homepage Redesign
-**Status**: ✅ Core redesign implemented; remaining welcome and live-service sections remain
+### Completed and working
+- public church site and landing experience
+- church admin access control and protected routes
+- attendance capture and duplicate-safe handling
+- report analytics and scorecard logic
+- member and referral tracking
+- media, announcements, events, and ministry management
+- admin dashboards with live metrics and premium UI cards
+- health checks for app/database/cache/queue/scheduler readiness
+- documentation updates for release-readiness guidance
 
-Pages/Components:
-- President welcome speech hero section
-- Vice-President welcome speech panel
-- Church service overview
-- Invitation league highlight section
-- Member and first-timer live service card
-- Birthday recognition callout
-- Leadership spotlight section
+### Still intentionally deferred
+- production host validation
+- external deployment sign-off
+- final live-site rollout sequencing with church host detail
 
-#### 2. Attendance Management UI
-**Status**: ⏳ Partially implemented
+These are not ignored; they are simply scheduled for the final release phase rather than the product-building phase.
 
-Pages/Components:
-- Attendance marking interface
-- Attendance history panel
+---
+
+## Recommended next execution step
+The clearest next move is to focus on the member lifecycle and onboarding automation layer.
+
+That task should include:
+1. member onboarding workflow review and completion tracking
+2. status tracking for active/inactive/first-timer members
+3. follow-up logic for referrals and new registrations
+4. stronger admin visibility for outreach and leadership assignment
+5. validation through a targeted regression test set
+
+This is the next meaningful operational milestone and it is the best bridge from the current working system to a fully mature church operations platform.
 - Sunday school vs main service reporting
 - Member/first-timer attendance split
 - Weekly scorecard module
