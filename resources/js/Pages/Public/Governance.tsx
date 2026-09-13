@@ -3,7 +3,7 @@ import { Head, Link } from '@inertiajs/react';
 export default function Governance() {
     return (
         <>
-            <Head title="Governance - NYP" />
+            <Head title="Governance - APGA Worldwide" />
 
             <div className="min-h-screen bg-white dark:bg-gray-900">
                 <nav className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800">
@@ -22,9 +22,9 @@ export default function Governance() {
 
                     <div className="space-y-8">
                         <section>
-                            <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">Parliamentary Structure</h2>
+                            <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">Church Governance Structure</h2>
                             <p className="text-gray-700 dark:text-gray-300 mb-4">
-                                The Nigerian Youth Parliament operates through a structured governance framework designed to ensure representation, accountability, and effective decision-making.
+                                APGA Worldwide operates through a structured governance framework designed to ensure spiritual accountability, faithful stewardship, and effective ministry leadership.
                             </p>
                         </section>
 

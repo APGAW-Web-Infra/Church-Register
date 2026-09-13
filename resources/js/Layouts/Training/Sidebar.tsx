@@ -35,14 +35,14 @@ export const Sidebar: React.FC<SidebarProps> = ({
       <div className="flex items-center justify-between h-16 px-4 border-b dark:border-gray-700">
         <div className="flex items-center space-x-3">
           <div className="w-8 h-8 bg-red-700/20 rounded-lg flex items-center justify-center border border-red-700/30">
-            <span className="text-red-200 font-semibold text-sm">NYP</span>
+            <span className="text-red-200 font-semibold text-sm">CH</span>
           </div>
           <div>
             <span className="font-semibold text-sm text-gray-900 dark:text-white">
-              NYP Training
+              Church Training
             </span>
             <p className="text-xs text-gray-500 dark:text-gray-400">
-              Church Training
+              Learning & discipleship
             </p>
           </div>
         </div>

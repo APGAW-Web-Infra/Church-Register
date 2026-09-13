@@ -17,10 +17,9 @@ return new class extends Migration
             $table->string('name');
             $table->string('email')->unique();
 
-            // Primary user type (always starts as individual for CPD)
+            // Primary user type for the church system
             $table->enum('primary_role', [
-                'individual', 'startup', 'sme_owner', 'investor',
-                'nyp_senator', 'institutional_partner', 'trainer_mentor_expert'
+                'individual', 'sunday_school_teacher', 'super_admin', 'admin'
             ])->default('individual');
 
             // Basic profile information

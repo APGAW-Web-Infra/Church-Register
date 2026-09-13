@@ -24,41 +24,25 @@ interface User {
     profile?: any;
 }
 
-// Role-specific field requirements
 const ROLE_REQUIREMENTS: Record<string, {
     fields: string[];
     title: string;
     description: string;
 }> = {
-    'startup': {
-        title: 'Startup Founder Profile',
-        description: 'Complete your startup information to qualify for incubation, mentorship, and seed funding.',
-        fields: ['cac_registration', 'business_type', 'business_stage', 'years_in_business', 'employee_count', 'annual_revenue', 'founded_date', 'funding_needs']
+    'individual': {
+        title: 'Church Member Profile',
+        description: 'Keep your personal details and church profile information current.',
+        fields: ['name', 'email', 'phone', 'address', 'description']
     },
-    'sme_owner': {
-        title: 'SME Owner Profile',
-        description: 'Provide your business details to access trade financing and working capital support.',
-        fields: ['cac_registration', 'business_type', 'years_in_business', 'employee_count', 'annual_turnover', 'market_reach']
+    'sunday_school_teacher': {
+        title: 'Sunday School Teacher Profile',
+        description: 'Update your teaching details and serving availability for the children and youth ministry.',
+        fields: ['name', 'email', 'phone', 'address', 'teaching_area', 'class_level', 'lesson_focus']
     },
-    'investor': {
-        title: 'Investor Profile',
-        description: 'Share your investment preferences to access quality startup and SME opportunities.',
-        fields: ['investor_type', 'preferred_sectors', 'ticket_sizes', 'accreditation_status']
-    },
-    'nyp_senator': {
-        title: 'NYP Senator Profile',
-        description: 'Complete your district and contact information to access oversight tools.',
-        fields: ['district', 'office_address', 'official_id']
-    },
-    'institutional_partner': {
-        title: 'Institutional Partner Profile',
-        description: 'Share your institution details to collaborate on APGA Worldwide initiatives.',
-        fields: ['institution_name', 'institution_registration', 'institution_sector', 'commitment_areas']
-    },
-    'trainer_mentor_expert': {
-        title: 'Trainer/Mentor/Expert Profile',
-        description: 'Showcase your expertise to guide youths, startups, and SMEs.',
-        fields: ['bio', 'cv_path', 'linkedin_profile', 'expertise_areas', 'training_mode', 'title', 'specialization']
+    'admin': {
+        title: 'Church Administrator Profile',
+        description: 'Keep your account and ministry admin details up to date.',
+        fields: ['name', 'email', 'phone', 'address']
     }
 };
 
@@ -134,10 +118,10 @@ export default function RoleApplicationForm({
         <section className={className}>
             <div className="mb-6">
                 <h2 className="text-lg font-medium text-gray-900 dark:text-gray-100">
-                    Role Applications & Management
+                    Church Role Management
                 </h2>
                 <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
-                    Apply for additional roles to access specialized dashboards and features.
+                    Review your current church access and keep your ministry profile information accurate.
                 </p>
             </div>
 
@@ -171,11 +155,11 @@ export default function RoleApplicationForm({
                 )}
             </div>
 
-            {/* Available Roles */}
+            {/* Active Church Roles */}
             {roles.length > 0 ? (
                 <div>
                     <h3 className="text-base font-medium text-gray-900 dark:text-white mb-4">
-                        Available Roles to Apply For ({roles.length})
+                        Active Church Roles ({roles.length})
                     </h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                         {roles.map((role) => {
@@ -194,7 +178,6 @@ export default function RoleApplicationForm({
                                         </p>
                                     </div>
 
-                                    {/* Profile Completeness Indicator */}
                                     <div className="mt-3 pt-3 border-t border-gray-200 dark:border-gray-700">
                                         <div className="flex items-center justify-between mb-2">
                                             <span className="text-xs text-gray-600 dark:text-gray-400">Profile Completeness</span>
@@ -212,15 +195,11 @@ export default function RoleApplicationForm({
                                         </div>
                                     </div>
 
-                                    {/* CTA Button */}
                                     <button
                                         onClick={() => handleRoleSelection(role.id)}
                                         className="mt-4 w-full inline-flex items-center justify-center px-4 py-2 bg-red-600 dark:bg-red-700 text-white rounded-lg hover:bg-red-700 dark:hover:bg-red-600 font-medium text-sm transition-colors"
                                     >
-                                        <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2m0 0v-8m0 8H3m0-8h18" />
-                                        </svg>
-                                        Apply Now
+                                        Review Role
                                     </button>
                                 </div>
                             );

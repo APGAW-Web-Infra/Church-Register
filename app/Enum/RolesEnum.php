@@ -4,70 +4,40 @@ namespace App\Enum;
 
 enum RolesEnum: string
 {
-    // Primary Dashboard Role - Entry point for all users
+    // Church member and ministry roles
     case Individual = 'individual';
 
-    // Specialized Roles based on APGA Worldwide requirements
-    case Startup = 'startup';
-    case SMEOwner = 'sme_owner';
-    case Investor = 'investor';
-    case NYPSenator = 'nyp_senator';
-    case InstitutionalPartner = 'institutional_partner';
-    case TrainerMentorExpert = 'trainer_mentor_expert';
-
-    // System Admin Roles
+    // Church administration roles
     case SuperAdmin = 'super_admin';
     case Admin = 'admin';
-    case Manager = 'manager';
-    case Support = 'support';
+    case SundaySchoolTeacher = 'sunday_school_teacher';
 
     public static function labels(): array
     {
         return [
-            self::SuperAdmin => 'Super Administrator',
-            self::Admin => 'Administrator',
-            self::Manager => 'Manager',
-            self::Support => 'Support Agent',
-            self::Individual => 'Individual (Primary Beneficiary)',
-            self::Startup => 'Startup Founder',
-            self::SMEOwner => 'SME Owner',
-            self::Investor => 'Investor',
-            self::NYPSenator => 'NYP Senator',
-            self::InstitutionalPartner => 'Institutional Partner',
-            self::TrainerMentorExpert => 'Trainer/Mentor/Expert',
+            self::Individual => 'Church Member',
+            self::SuperAdmin => 'Church Super Administrator',
+            self::Admin => 'Church Administrator',
+            self::SundaySchoolTeacher => 'Sunday School Teacher',
         ];
     }
 
     public function label(): string
     {
         return match($this) {
-            self::SuperAdmin => 'Super Administrator',
-            self::Admin => 'Administrator',
-            self::Manager => 'Manager',
-            self::Support => 'Support Agent',
-            self::Individual => 'Individual (Primary Beneficiary)',
-            self::Startup => 'Startup Founder',
-            self::SMEOwner => 'SME Owner',
-            self::Investor => 'Investor',
-            self::NYPSenator => 'NYP Senator',
-            self::InstitutionalPartner => 'Institutional Partner',
-            self::TrainerMentorExpert => 'Trainer/Mentor/Expert',
+            self::Individual => 'Church Member',
+            self::SuperAdmin => 'Church Super Administrator',
+            self::Admin => 'Church Administrator',
+            self::SundaySchoolTeacher => 'Sunday School Teacher',
         };
     }
 
     /**
-     * Get roles that have access to specialized dashboards
+     * Church-only role set; no extra application roles remain.
      */
     public static function getSpecializedRoles(): array
     {
-        return [
-            self::Startup->value,
-            self::SMEOwner->value,
-            self::Investor->value,
-            self::NYPSenator->value,
-            self::InstitutionalPartner->value,
-            self::TrainerMentorExpert->value,
-        ];
+        return [];
     }
 
     /**
@@ -83,9 +53,6 @@ enum RolesEnum: string
      */
     public function canApplyForAdditionalRoles(): bool
     {
-        return match($this) {
-            self::SuperAdmin, self::Admin => false, // System roles cannot switch
-            default => true,
-        };
+        return false;
     }
 }

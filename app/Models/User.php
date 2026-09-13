@@ -196,28 +196,6 @@ class User extends Authenticatable
         return $this->hasMany(AttendanceRecord::class);
     }
 
-    // Wallet relationships
-    public function wallets()
-    {
-        return $this->hasMany(Wallet::class);
-    }
-
-    public function transactions()
-    {
-        return $this->hasMany(Transaction::class);
-    }
-
-    // Funding relationships
-    public function fundingApplications()
-    {
-        return $this->hasMany(FundingApplication::class);
-    }
-
-    public function vcMatches()
-    {
-        return $this->hasMany(VcMatch::class);
-    }
-
     // Training relationships
     public function enrollments()
     {
@@ -388,20 +366,7 @@ class User extends Authenticatable
      */
     public function hasCompletedProfileForRole(RolesEnum $role): bool
     {
-        $profile = $this->profile;
-        if (!$profile) {
-            return false;
-        }
-
-        return match($role) {
-            RolesEnum::Startup => $this->hasStartupProfile(),
-            RolesEnum::SMEOwner => $this->hasSMEProfile(),
-            RolesEnum::Investor => $this->hasInvestorProfile(),
-            RolesEnum::NYPSenator => $this->hasSenatorProfile(),
-            RolesEnum::InstitutionalPartner => $this->hasInstitutionalProfile(),
-            RolesEnum::TrainerMentorExpert => $this->hasTrainerProfile(),
-            default => true,
-        };
+        return true;
     }
 
     /**
@@ -419,68 +384,6 @@ class User extends Authenticatable
             'active_roles' => $this->active_roles ?? [],
             'has_cpd_access' => $this->can(PermissionsEnum::AccessCPD->value),
         ];
-    }
-
-    // Profile Completion Checks
-
-    private function hasStartupProfile(): bool
-    {
-        $profile = $this->profile;
-        return $profile &&
-               $profile->business_name &&
-               $profile->business_stage &&
-               $profile->pitch_deck_path &&
-               $profile->funding_needs;
-    }
-
-    private function hasSMEProfile(): bool
-    {
-        $profile = $this->profile;
-        return $profile &&
-               $profile->business_name &&
-               $profile->cac_registration &&
-               $profile->employee_count &&
-               $profile->annual_turnover;
-    }
-
-    private function hasInvestorProfile(): bool
-    {
-        $profile = $this->profile;
-        return $profile &&
-               $profile->investor_type &&
-               $profile->preferred_sectors &&
-               $profile->ticket_sizes &&
-               $profile->kyc_documents;
-    }
-
-    private function hasSenatorProfile(): bool
-    {
-        $profile = $this->profile;
-        return $profile &&
-               $profile->district &&
-               $profile->office_address &&
-               $profile->official_id &&
-               $profile->contact_channels;
-    }
-
-    private function hasInstitutionalProfile(): bool
-    {
-        $profile = $this->profile;
-        return $profile &&
-               $profile->institution_name &&
-               $profile->institution_registration &&
-               $profile->institution_sector &&
-               $profile->contact_persons;
-    }
-
-    private function hasTrainerProfile(): bool
-    {
-        $profile = $this->profile;
-        return $profile &&
-               $profile->bio &&
-               $profile->expertise_areas &&
-               $profile->certifications &&
-               $profile->training_mode;
     }
 
     // Utility Methods
@@ -511,36 +414,25 @@ class User extends Authenticatable
     }
 
     /**
-     * Get wallet balance for currency
-     */
-    public function getWalletBalance(string $currency): float
-    {
-        $wallet = $this->wallets()->where('currency_type', $currency)->first();
-        return $wallet ? $wallet->balance : 0.0;
-    }
-
-    /**
      * Calculate community rank based on activities
      */
     public function calculateCommunityRank(): int
     {
-        // Calculate this user's score from the same activity sources used in the dashboard.
+        // Calculate this user's score from the same church activity sources used in the dashboard.
         $activitiesScore = $this->activities()->count();
         $trainingScore = $this->enrollments()->where('status', 'completed')->count() * 2;
-        $fundingScore = $this->fundingApplications()->where('status', 'approved')->count() * 5;
         $communityScore = $this->communityMemberships()->count();
         $eventScore = \App\Models\EventRegistration::query()->where('user_id', $this->id)->count();
 
-        $score = $activitiesScore + $trainingScore + $fundingScore + $communityScore + $eventScore;
+        $score = $activitiesScore + $trainingScore + $communityScore + $eventScore;
 
         $higherRankedCount = self::query()->get()->filter(function ($user) use ($score) {
             $userActivitiesScore = $user->activities()->count();
             $userTrainingScore = $user->enrollments()->where('status', 'completed')->count() * 2;
-            $userFundingScore = $user->fundingApplications()->where('status', 'approved')->count() * 5;
             $userCommunityScore = $user->communityMemberships()->count();
             $userEventScore = \App\Models\EventRegistration::query()->where('user_id', $user->id)->count();
 
-            $userScore = $userActivitiesScore + $userTrainingScore + $userFundingScore + $userCommunityScore + $userEventScore;
+            $userScore = $userActivitiesScore + $userTrainingScore + $userCommunityScore + $userEventScore;
 
             return $userScore > $score;
         })->count();

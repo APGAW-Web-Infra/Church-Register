@@ -14,7 +14,7 @@ return new class extends Migration
     {
         // Only run raw ALTER statements on MySQL (SQLite in-memory used for tests doesn't support MODIFY)
         if (Schema::getConnection()->getDriverName() === 'mysql') {
-            DB::statement("ALTER TABLE users MODIFY primary_role ENUM('individual', 'startup', 'sme_owner', 'investor', 'nyp_senator', 'institutional_partner', 'trainer_mentor_expert', 'super_admin', 'admin', 'manager', 'support') DEFAULT 'individual'");
+            DB::statement("ALTER TABLE users MODIFY primary_role ENUM('individual', 'sunday_school_teacher', 'super_admin', 'admin') DEFAULT 'individual'");
         }
     }
 
@@ -25,7 +25,7 @@ return new class extends Migration
     {
         // Restore to original enum only on MySQL
         if (Schema::getConnection()->getDriverName() === 'mysql') {
-            DB::statement("ALTER TABLE users MODIFY primary_role ENUM('individual', 'startup', 'sme_owner', 'investor', 'nyp_senator', 'institutional_partner', 'trainer_mentor_expert') DEFAULT 'individual'");
+            DB::statement("ALTER TABLE users MODIFY primary_role ENUM('individual', 'sunday_school_teacher', 'super_admin', 'admin') DEFAULT 'individual'");
         }
     }
 };

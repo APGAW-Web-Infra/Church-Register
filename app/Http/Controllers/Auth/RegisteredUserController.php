@@ -44,7 +44,6 @@ class RegisteredUserController extends Controller
             'membership_status' => ['nullable', 'in:1,2'],
             'workforce_status' => ['nullable', 'in:1,2'],
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
-            'user_type' => 'nullable|string|in:entrepreneur,sme,investor,individual',
             'state' => 'nullable|string',
             'lga' => 'nullable|string',
             'referral_code' => ['nullable', 'string', 'size:10', 'exists:users,referral_code'],
@@ -75,7 +74,6 @@ class RegisteredUserController extends Controller
             'phone' => $request->phone,
             'date_of_birth' => $request->date_of_birth,
             'password' => Hash::make($request->password),
-            'user_type' => $request->user_type ?? 'entrepreneur',
             'state' => $request->state,
             'lga' => $request->lga,
         ]);

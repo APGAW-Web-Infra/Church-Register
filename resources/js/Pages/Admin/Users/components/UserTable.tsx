@@ -107,12 +107,6 @@ const RoleBadge: React.FC<{ role: Role }> = ({ role }) => {
         return 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300';
       case 'manager':
         return 'bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300';
-      case 'investor':
-        return 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300';
-      case 'startup':
-        return 'bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300';
-      case 'sme_owner':
-        return 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300';
       default:
         return 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300';
     }

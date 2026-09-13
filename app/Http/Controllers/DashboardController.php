@@ -121,76 +121,7 @@ class DashboardController extends Controller
         // Role-specific stats
         $currentRole = RolesEnum::from($user->primary_role);
 
-        switch ($currentRole) {
-            case RolesEnum::Startup:
-                $stats = array_merge($stats, $this->getStartupStats($user));
-                break;
-            case RolesEnum::SMEOwner:
-                $stats = array_merge($stats, $this->getSMEStats($user));
-                break;
-            case RolesEnum::Investor:
-                $stats = array_merge($stats, $this->getInvestorStats($user));
-                break;
-            case RolesEnum::NYPSenator:
-                $stats = array_merge($stats, $this->getSenatorStats($user));
-                break;
-            case RolesEnum::InstitutionalPartner:
-                $stats = array_merge($stats, $this->getInstitutionalStats($user));
-                break;
-            case RolesEnum::TrainerMentorExpert:
-                $stats = array_merge($stats, $this->getTrainerStats($user));
-                break;
-        }
-
         return $stats;
-    }
-
-    private function getStartupStats(User $user): array
-    {
-        return [
-            'pitchViews' => $user->profile?->pitch_views ?? 0,
-            'activeIncubation' => $user->hasRole('incubator_member'),
-        ];
-    }
-
-    private function getSMEStats(User $user): array
-    {
-        return [
-            'supplierNetwork' => $user->supplierConnections()->count() ?? 0,
-        ];
-    }
-
-    private function getInvestorStats(User $user): array
-    {
-        return [
-            'activeInvestments' => $user->investments()->where('status', 'active')->count() ?? 0,
-        ];
-    }
-
-    private function getSenatorStats(User $user): array
-    {
-        return [
-            'oversight_reports' => $user->oversightReports()->count() ?? 0,
-            'initiatives_approved' => $user->approvedInitiatives()->count() ?? 0,
-        ];
-    }
-
-    private function getInstitutionalStats(User $user): array
-    {
-        return [
-            'active_partnerships' => $user->partnerships()->where('status', 'active')->count() ?? 0,
-            'programs_supported' => $user->supportedPrograms()->count() ?? 0,
-        ];
-    }
-
-    private function getTrainerStats(User $user): array
-    {
-        return [
-            'courses_created' => $user->createdCourses()->count(),
-            'students_taught' => $user->enrollments()->distinct('user_id')->count('user_id') ?? 0,
-            'completion_rate' => $this->calculateCompletionRate($user),
-            'active_mentees' => $user->mentoring()->where('status', 'active')->count(),
-        ];
     }
 
     private function getRecentActivity(User $user): array
@@ -598,84 +529,8 @@ class DashboardController extends Controller
             ],
         ];
 
-        // Role-specific actions
-        $roleActions = match($currentRole) {
-            RolesEnum::Startup => [
-                [
-                    'id' => 'upload_pitch_deck',
-                    'title' => 'Upload Pitch Deck',
-                    'description' => 'Update your pitch presentation',
-                    'icon' => 'M9 12L11 14L15 10M21 12C21 16.97 16.97 21 12 21C7.03 21 3 16.97 3 12C3 7.03 7.03 3 12 3C16.97 3 21 7.03 21 12Z',
-                    'color' => 'purple',
-                    'permission' => PermissionsEnum::UploadPitchDeck->value,
-                    'route' => 'profile.edit',
-                ],
-                [
-                    'id' => 'view_investor_matches',
-                    'title' => 'View Investor Matches',
-                    'description' => 'See potential investors',
-                    'icon' => 'M17 8C17 10.76 14.76 13 12 13S7 10.76 7 8C7 5.24 9.24 3 12 3S17 5.24 17 8ZM12 15C16.42 15 20 16.79 20 19V21H4V19C4 16.79 7.58 15 12 15Z',
-                    'color' => 'indigo',
-                    'permission' => PermissionsEnum::ViewInvestorMatches->value,
-                    'route' => 'community.index',
-                ],
-            ],
-            RolesEnum::SMEOwner => [
-                [
-                    'id' => 'access_sme_tools',
-                    'title' => 'SME Tools',
-                    'description' => 'Inventory & e-commerce tools',
-                    'icon' => 'M20 6L9 17L4 12L5.41 10.59L9 14.17L18.59 4.59L20 6Z',
-                    'color' => 'orange',
-                    'permission' => PermissionsEnum::AccessSMETools->value,
-                    'route' => 'profile.edit',
-                ],
-            ],
-            RolesEnum::Investor => [
-                [
-                    'id' => 'investment_opportunities',
-                    'title' => 'Investment Opportunities',
-                    'description' => 'Browse investment deals',
-                    'icon' => 'M12 2C13.1 2 14 2.9 14 4C14 5.1 13.1 6 12 6C10.9 6 10 5.1 10 4C10 2.9 10.9 2 12 2ZM21 9V7L15 4L13.5 7H7V9H13.5L15 12L21 9ZM7 12V22H9V18H11V22H13V12H7Z',
-                    'color' => 'green',
-                    'permission' => PermissionsEnum::ViewInvestmentOpportunities->value,
-                    'route' => 'community.index',
-                ],
-                [
-                    'id' => 'portfolio_dashboard',
-                    'title' => 'Portfolio Dashboard',
-                    'description' => 'Track your investments',
-                    'icon' => 'M3 3H21C21.55 3 22 3.45 22 4V20C22 20.55 21.55 21 21 21H3C2.45 21 2 20.55 2 20V4C2 3.45 2.45 3 3 3ZM4 5V19H20V5H4Z',
-                    'color' => 'emerald',
-                    'permission' => PermissionsEnum::ManagePortfolio->value,
-                    'route' => 'profile.edit',
-                ],
-            ],
-            RolesEnum::TrainerMentorExpert => [
-                [
-                    'id' => 'create_course',
-                    'title' => 'Create Course',
-                    'description' => 'Develop new training content',
-                    'icon' => 'M12 2L2 7V10C2 16 6 20.5 12 22C18 20.5 22 16 22 10V7L12 2Z',
-                    'color' => 'cyan',
-                    'permission' => PermissionsEnum::CreateCourses->value,
-                    'route' => 'training.courses',
-                ],
-                [
-                    'id' => 'manage_mentees',
-                    'title' => 'Manage Mentees',
-                    'description' => 'View and guide mentees',
-                    'icon' => 'M16 4C18.2 4 20 5.8 20 8C20 10.2 18.2 12 16 12C13.8 12 12 10.2 12 8C12 5.8 13.8 4 16 4ZM8 6C9.1 6 10 6.9 10 8C10 9.1 9.1 10 8 10C6.9 10 6 9.1 6 8C6 6.9 6.9 6 8 6ZM8 12C10.7 12 16 13.3 16 16V18H0V16C0 13.3 5.3 12 8 12ZM16 14C18.7 14 24 15.3 24 18V20H18V18C18 16.9 17.6 15.4 16 14Z',
-                    'color' => 'violet',
-                    'permission' => PermissionsEnum::ManageMentorship->value,
-                    'route' => 'community.index',
-                ],
-            ],
-            default => [],
-        };
-
         // Filter actions based on user permissions
-        $allActions = array_merge($baseActions, $roleActions);
+        $allActions = $baseActions;
 
         return array_values(array_filter($allActions, function ($action) use ($user) {
             return $user->can($action['permission']);
@@ -690,7 +545,7 @@ class DashboardController extends Controller
                 'course' => $enrollment->course->title,
                 'progress' => $enrollment->progress_percentage ?? 0,
                 'status' => $enrollment->status,
-                'instructor' => $enrollment->course->instructor_name ?? 'NYP Instructor',
+                'instructor' => $enrollment->course->instructor_name ?? 'Church Instructor',
                 'category' => $enrollment->course->category,
                 'duration' => $enrollment->course->duration_hours . ' hours',
             ];

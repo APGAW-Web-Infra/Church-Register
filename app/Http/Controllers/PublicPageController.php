@@ -119,7 +119,7 @@ class PublicPageController extends Controller
         ];
     }
 
-    // About NYP Institution Pages
+    // About church pages
     public function about()
     {
         return Inertia::render('Public/About', [
@@ -190,13 +190,6 @@ class PublicPageController extends Controller
     public function partners()
     {
         return Inertia::render('Public/Partners', [
-            'laravelVersion' => Application::VERSION,
-        ]);
-    }
-
-    public function funding()
-    {
-        return Inertia::render('Public/Funding', [
             'laravelVersion' => Application::VERSION,
         ]);
     }

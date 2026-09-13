@@ -11,16 +11,16 @@
         <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
         <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
         <meta name="twitter:title" content="APGA Worldwide - Apostolic Power Glorious Assembly" />
-        <meta name="twitter:description" content="APGA Worldwide is a faith-based community dedicated to spiritual growth, fellowship, and making a difference in the world. Join us in growing God's kingdom together in faith." />
-        <meta name="twitter:image" content="{{asset('images/logo.jpg')}}" />
+        <meta name="twitter:description" content="APGA Worldwide is a faith-based Church dedicated to spiritual growth, fellowship, and making a difference in the world. Join us in growing God's kingdom together in faith." />
+        <meta name="twitter:image" content="{{asset('images/logo.png')}}" />
         <meta name="twitter:card" content="summary" />
 
         <!-- Open Graph Meta Tags -->
         <meta property="og:title" content="APGA Worldwide - Apostolic Power Glorious Assembly" />
-        <meta property="og:description" content="APGA Worldwide is a faith-based community dedicated to spiritual growth, fellowship, and making a difference in the world. Join us in growing God's kingdom together in faith." />
-        <meta property="og:image" content="{{asset('images/logo.jpg')}}" />
+        <meta property="og:description" content="APGA Worldwide is a faith-based Church dedicated to spiritual growth, fellowship, and making a difference in the world. Join us in growing God's kingdom together in faith." />
+        <meta property="og:image" content="{{asset('images/logo.png')}}" />
         <meta property="og:type" content="website" />
-        <meta property="og:url" content="https://apgaworldwide.org" />
+        <meta property="og:url" content="https://apgaworldwide.com.ng" />
         <meta property="og:image:alt" content="APGA Worldwide - Church Management Platform" />
         <meta property="og:image:width" content="400">
         <meta property="og:image:height" content="400">

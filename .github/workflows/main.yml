@@ -1,4 +1,4 @@
-name: Production NYP-IP Portal Deployment
+name: Production APGAWorldwide Deployment
 on:
   push:
     branches:
@@ -30,7 +30,7 @@ jobs:
       # - name: Create .env file
       #   run: |
       #     cat << EOF > .env
-      #     APP_NAME="NYP-IP Portal"
+      #     APP_NAME="APGAWorldwide"
       #     APP_ENV=production
       #     APP_KEY=${{ secrets.APP_KEY }}
       #     APP_DEBUG=false

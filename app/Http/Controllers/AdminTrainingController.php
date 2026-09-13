@@ -54,7 +54,7 @@ class AdminTrainingController extends Controller
         $categories = CourseCategory::active()->ordered()->get();
         $skillTypes = SkillType::active()->ordered()->get();
         $instructors = User::role([
-            RolesEnum::TrainerMentorExpert->value,
+            RolesEnum::SundaySchoolTeacher->value,
             RolesEnum::Admin->value,
             RolesEnum::SuperAdmin->value,
         ])->orderBy('name')
@@ -555,7 +555,7 @@ private function buildCurriculumFromSections(array $sections): array
         $categories = CourseCategory::active()->ordered()->get();
         $skillTypes = SkillType::active()->ordered()->get();
         $instructors = User::role([
-            RolesEnum::TrainerMentorExpert->value,
+            RolesEnum::SundaySchoolTeacher->value,
             RolesEnum::Admin->value,
             RolesEnum::SuperAdmin->value,
         ])->orderBy('name')

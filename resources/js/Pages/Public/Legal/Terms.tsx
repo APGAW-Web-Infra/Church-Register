@@ -33,7 +33,7 @@ export default function Terms() {
                         </section>
                         <section>
                             <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-3">Limitation of Liability</h2>
-                            <p>The NYP provides services on an "as-is" basis. We are not liable for indirect, incidental, or consequential damages arising from platform use.</p>
+                            <p>APGA Worldwide provides services on an "as-is" basis. We are not liable for indirect, incidental, or consequential damages arising from platform use.</p>
                         </section>
                     </div>
                 </div>

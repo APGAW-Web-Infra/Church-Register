@@ -2,7 +2,6 @@ import React from 'react';
 import { Head, router } from '@inertiajs/react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import UpdatePasswordForm from './Partials/UpdatePasswordForm';
-import UpdateBusinessProfileForm from './Partials/UpdateBusinessProfileForm';
 import UpdateProfileInformationForm from './Partials/UpdateProfileInformationForm';
 import ErrorBoundary from '@/Components/ErrorBoundary';
 import { PageProps } from '@/types';
@@ -35,46 +34,12 @@ interface User {
 interface UserProfile {
     id: number;
     user_id: number;
-    business_name?: string;
-    cac_registration?: string;
-    business_type?: string;
-    business_stage?: string;
-    years_in_business?: number;
-    employee_count?: number;
-    annual_revenue?: number;
-    annual_turnover?: number;
     description?: string;
-    website?: string;
-    founded_date?: string;
-    logo_path?: string;
-    pitch_deck_path?: string;
-    funding_needs?: number;
-    funding_history?: any[];
-    market_reach?: string;
-    loan_request_details?: any[];
-    investor_type?: string;
-    preferred_sectors?: string[];
-    ticket_sizes?: string[];
-    accreditation_status?: string;
-    kyc_documents?: any[];
-    district?: string;
-    office_address?: string;
-    official_id?: string;
-    contact_channels?: any[];
-    institution_name?: string;
-    institution_registration?: string;
-    institution_sector?: string;
-    contact_persons?: any[];
-    commitment_areas?: string[];
     bio?: string;
-    cv_path?: string;
-    linkedin_profile?: string;
-    expertise_areas?: string[];
-    certifications?: any[];
-    references?: any[];
-    training_mode?: string;
-    title?: string;
-    specialization?: string[];
+    skills_of_interest?: string[];
+    profession?: string;
+    experience_level?: string;
+    availability?: string;
     profile_complete?: boolean;
     profile_completed_at?: string;
 }
@@ -103,11 +68,6 @@ interface EditProps extends PageProps {
     user: User;
     dashboardContext: DashboardContext;
     sectors: SelectOption[];
-    businessTypes: string[];
-    businessStages: SelectOption[];
-    investorTypes: SelectOption[];
-    institutionSectors: SelectOption[];
-    trainingModes: SelectOption[];
     educationLevels: SelectOption[];
     states: SelectOption[];
     memberProfilePhotoUrl?: string | null;
@@ -120,14 +80,9 @@ export default function Edit({
     user,
     dashboardContext,
     sectors,
-    businessTypes,
-    businessStages,
-    investorTypes,
-    institutionSectors,
-    trainingModes,
     educationLevels,
-    states
-    , memberProfilePhotoUrl
+    states,
+    memberProfilePhotoUrl
 }: EditProps) {
     const [activeSection, setActiveSection] = React.useState<string>('profile');
     const [pageLoaded, setPageLoaded] = React.useState<boolean>(false);
@@ -138,46 +93,12 @@ export default function Edit({
         profile: user.profile || {
             id: 0,
             user_id: user.id,
-            business_name: undefined,
-            cac_registration: undefined,
-            business_type: undefined,
-            business_stage: undefined,
-            years_in_business: undefined,
-            employee_count: undefined,
-            annual_revenue: undefined,
-            annual_turnover: undefined,
             description: undefined,
-            website: undefined,
-            founded_date: undefined,
-            logo_path: undefined,
-            pitch_deck_path: undefined,
-            funding_needs: undefined,
-            funding_history: undefined,
-            market_reach: undefined,
-            loan_request_details: undefined,
-            investor_type: undefined,
-            preferred_sectors: undefined,
-            ticket_sizes: undefined,
-            accreditation_status: undefined,
-            kyc_documents: undefined,
-            district: undefined,
-            office_address: undefined,
-            official_id: undefined,
-            contact_channels: undefined,
-            institution_name: undefined,
-            institution_registration: undefined,
-            institution_sector: undefined,
-            contact_persons: undefined,
-            commitment_areas: undefined,
             bio: undefined,
-            cv_path: undefined,
-            linkedin_profile: undefined,
-            expertise_areas: undefined,
-            certifications: undefined,
-            references: undefined,
-            training_mode: undefined,
-            title: undefined,
-            specialization: undefined,
+            skills_of_interest: undefined,
+            profession: undefined,
+            experience_level: undefined,
+            availability: undefined,
             profile_complete: false,
             profile_completed_at: undefined,
         }
@@ -197,11 +118,6 @@ export default function Edit({
             id: 'profile',
             name: 'Profile Information',
             description: 'Update your personal information and contact details'
-        },
-        {
-            id: 'business',
-            name: 'Business Profile',
-            description: 'Manage your business or professional information'
         },
         {
             id: 'security',
@@ -230,20 +146,10 @@ export default function Edit({
 
     const getRequiredFieldsForRole = (role: string): string[] => {
         switch (role) {
-            case 'startup':
-                return ['business_name', 'business_stage', 'business_type', 'funding_needs', 'description'];
-            case 'sme_owner':
-                return ['business_name', 'cac_registration', 'business_type', 'employee_count', 'annual_turnover'];
-            case 'investor':
-                return ['investor_type', 'preferred_sectors', 'ticket_sizes', 'kyc_documents'];
-            case 'nyp_senator':
-                return ['district', 'office_address', 'official_id', 'contact_channels'];
-            case 'institutional_partner':
-                return ['institution_name', 'institution_registration', 'institution_sector', 'contact_persons'];
-            case 'trainer_mentor_expert':
-                return ['bio', 'expertise_areas', 'certifications', 'training_mode'];
+            case 'sunday_school_teacher':
+                return ['name', 'email', 'phone', 'address'];
             default:
-                return ['name', 'email', 'phone'];
+                return ['name', 'email', 'phone', 'address'];
         }
     };
 
@@ -319,22 +225,6 @@ export default function Edit({
                                             educationLevels={educationLevels}
                                             states={states}
                                             memberProfilePhotoUrl={memberProfilePhotoUrl}
-                                        />
-                                    </div>
-                                )}
-
-                                {/* Business Profile Section */}
-                                {activeSection === 'business' && pageLoaded && (
-                                    <div className="bg-white dark:bg-gray-800 shadow rounded-lg">
-                                        <UpdateBusinessProfileForm
-                                            className="p-6"
-                                            user={safeUser}
-                                            sectors={sectors}
-                                            businessTypes={businessTypes}
-                                            businessStages={businessStages}
-                                            investorTypes={investorTypes}
-                                            institutionSectors={institutionSectors}
-                                            trainingModes={trainingModes}
                                         />
                                     </div>
                                 )}

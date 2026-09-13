@@ -99,7 +99,7 @@
                 <!-- Replace with your logo -->
                 {{-- <div className="w-fit">
                     <a href="/" className="flex gap-4 items-center">
-                        <img src={{ asset('img/logo.jpg')}} alt="NYP  class="sm:w-fit h-[80px]"/>
+                        <img src={{ asset('img/logo.png')}} alt="APGAWworldwide class="sm:w-fit h-[80px]"/>
                     </a>
                 </div> --}}
 

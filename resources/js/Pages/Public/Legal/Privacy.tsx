@@ -16,7 +16,7 @@ export default function Privacy() {
                     <div className="prose prose-lg dark:prose-invert max-w-none space-y-6 text-gray-700 dark:text-gray-300">
                         <section>
                             <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-3">Introduction</h2>
-                            <p>The Nigerian Youth Parliament (NYP) respects your privacy and is committed to protecting your personal data. This Privacy Policy outlines how we collect, use, and safeguard your information.</p>
+                            <p>APGA Worldwide respects your privacy and is committed to protecting your personal data. This Privacy Policy outlines how we collect, use, and safeguard your information.</p>
                         </section>
                         <section>
                             <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-3">Information We Collect</h2>

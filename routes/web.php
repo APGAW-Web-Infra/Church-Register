@@ -4,8 +4,6 @@ use App\Enum\RolesEnum;
 use App\Http\Controllers\AdminTrainingController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\DashboardController;
-use App\Http\Controllers\WalletController;
-use App\Http\Controllers\FundingController;
 use App\Http\Controllers\CommunityController;
 use App\Http\Controllers\CourseController;
 use App\Http\Controllers\TrainingController;
@@ -73,7 +71,6 @@ Route::middleware('auth')->group(function () {
 Route::get('/volunteer', [PublicPageController::class, 'volunteer'])->name('volunteer');
 Route::get('/giving', [PublicPageController::class, 'giving'])->name('giving');
 Route::get('/partners', [PublicPageController::class, 'partners'])->name('partners');
-Route::get('/funding', [PublicPageController::class, 'funding'])->name('funding');
 // Public Footer Pages - Resources
 Route::get('/community', [PublicPageController::class, 'community'])->name('community');
 Route::get('/units', [PublicPageController::class, 'units'])->name('units');
@@ -172,21 +169,6 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/export-data', [ProfileController::class, 'export'])->name('export-data');
         Route::post('/apply-for-role', [ProfileController::class, 'applyForRole'])->name('apply-for-role');
         Route::post('/switch-role', [ProfileController::class, 'switchRole'])->name('switch-role');
-    });
-
-    // Wallet routes
-    Route::prefix('wallet')->name('wallet.')->group(function () {
-        Route::get('/', [WalletController::class, 'index'])->name('index');
-        Route::post('/transfer', [WalletController::class, 'transfer'])->name('transfer');
-        Route::post('/swap', [WalletController::class, 'swap'])->name('swap');
-    });
-
-    // Funding routes
-    Route::prefix('funding')->name('funding.')->group(function () {
-        // Internal funding data endpoint - moved off the public '/funding' path
-        Route::get('/data', [FundingController::class, 'index'])->name('index');
-        Route::post('/apply', [FundingController::class, 'apply'])->name('apply');
-        Route::get('/types', [FundingController::class, 'fundTypes'])->name('types');
     });
 
     // Community routes

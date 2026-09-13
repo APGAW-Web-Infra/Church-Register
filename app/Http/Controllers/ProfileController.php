@@ -59,47 +59,6 @@ class ProfileController extends Controller
             ['id' => 'other', 'name' => 'Other'],
         ];
 
-        // Business types
-        $businessTypes = [
-            'technology', 'healthcare', 'finance', 'education', 'agriculture',
-            'manufacturing', 'retail', 'services', 'construction', 'other'
-        ];
-
-        // Business stages for startups
-        $businessStages = [
-            ['id' => 'idea', 'name' => 'Idea Stage'],
-            ['id' => 'mvp', 'name' => 'MVP/Prototype'],
-            ['id' => 'growth', 'name' => 'Growth Stage'],
-            ['id' => 'expansion', 'name' => 'Expansion Stage'],
-            ['id' => 'mature', 'name' => 'Mature Business'],
-        ];
-
-        // Investor types
-        $investorTypes = [
-            ['id' => 'angel', 'name' => 'Angel Investor'],
-            ['id' => 'vc', 'name' => 'Venture Capitalist'],
-            ['id' => 'institutional', 'name' => 'Institutional Investor'],
-            ['id' => 'retail', 'name' => 'Retail Investor'],
-            ['id' => 'development', 'name' => 'Development Finance'],
-        ];
-
-        // Institution sectors
-        $institutionSectors = [
-            ['id' => 'finance', 'name' => 'Finance'],
-            ['id' => 'education', 'name' => 'Education'],
-            ['id' => 'development', 'name' => 'Development'],
-            ['id' => 'government', 'name' => 'Government'],
-            ['id' => 'ngo', 'name' => 'NGO'],
-            ['id' => 'private', 'name' => 'Private Sector'],
-        ];
-
-        // Training modes
-        $trainingModes = [
-            ['id' => 'virtual', 'name' => 'Virtual'],
-            ['id' => 'physical', 'name' => 'Physical'],
-            ['id' => 'hybrid', 'name' => 'Hybrid'],
-        ];
-
         // Education levels
         $educationLevels = [
             ['id' => 'primary', 'name' => 'Primary Education'],
@@ -133,11 +92,6 @@ class ProfileController extends Controller
             'user' => $userForView,
             'dashboardContext' => $user->getDashboardContext(),
             'sectors' => $sectors,
-            'businessTypes' => $businessTypes,
-            'businessStages' => $businessStages,
-            'investorTypes' => $investorTypes,
-            'institutionSectors' => $institutionSectors,
-            'trainingModes' => $trainingModes,
             'educationLevels' => $educationLevels,
             'states' => $states,
             'lgas' => $lgas,
@@ -267,7 +221,7 @@ class ProfileController extends Controller
     public function applyForRole(Request $request): RedirectResponse
     {
         $request->validate([
-            'role' => 'required|string|in:startup,sme_owner,investor,nyp_senator,institutional_partner,trainer_mentor_expert',
+            'role' => 'required|string|in:individual,sunday_school_teacher,super_admin,admin',
         ]);
 
         $user = $request->user();
@@ -437,8 +391,7 @@ class ProfileController extends Controller
     {
         $user = $request->user();
         $user->load([
-            'profile', 'wallets', 'transactions', 'fundingApplications',
-            'vcMatches', 'enrollments', 'communityMemberships',
+            'profile', 'enrollments', 'communityMemberships',
             'forumPosts', 'mentorships', 'activities', 'roles', 'permissions'
         ]);
 
@@ -460,16 +413,9 @@ class ProfileController extends Controller
                 'active_roles' => $user->active_roles,
                 'created_at' => $user->created_at,
             ],
-            'business_profile' => $user->profile ? $user->profile->toArray() : null,
             'roles_and_permissions' => [
                 'roles' => $user->roles->pluck('name'),
                 'permissions' => $user->getAllPermissions()->pluck('name'),
-            ],
-            'financial_data' => [
-                'wallets' => $user->wallets->toArray(),
-                'transactions' => $user->transactions->toArray(),
-                'funding_applications' => $user->fundingApplications->toArray(),
-                'vc_matches' => $user->vcMatches->toArray(),
             ],
             'education_data' => [
                 'enrollments' => $user->enrollments->toArray(),
@@ -483,7 +429,7 @@ class ProfileController extends Controller
             'export_date' => now()->toISOString(),
         ];
 
-        $filename = 'nyp_user_data_' . $user->id . '_' . now()->format('Y_m_d_H_i_s') . '.json';
+        $filename = 'church_user_data_' . $user->id . '_' . now()->format('Y_m_d_H_i_s') . '.json';
 
         return response()->json($data)
             ->header('Content-Disposition', 'attachment; filename="' . $filename . '"')
@@ -507,12 +453,6 @@ class ProfileController extends Controller
 
         return response()->json([
             'stats' => [
-                'total_funding' => $user->fundingApplications()
-                    ->where('status', 'approved')
-                    ->sum('amount_requested'),
-                'active_applications' => $user->fundingApplications()
-                    ->whereIn('status', ['pending', 'under_review'])
-                    ->count(),
                 'completed_training' => $user->enrollments()
                     ->where('status', 'completed')
                     ->count(),
@@ -532,37 +472,12 @@ class ProfileController extends Controller
             $currentRole = $user->primary_role;
             $profileData = [];
 
-            $commonFields = [
-                'business_name', 'description', 'website', 'logo_path'
-            ];
-
-            foreach ($commonFields as $field) {
-                if ($request->has($field)) {
-                    $profileData[$field] = $request->input($field);
-                }
-            }
-
-            // Role-specific fields
+            // Role-specific church profile fields only
             $roleSpecificFields = $this->getRoleSpecificFields($currentRole);
 
-            // Add role-specific fields
             foreach ($roleSpecificFields as $field) {
                 if ($request->has($field)) {
-                    $value = $request->input($field);
-
-                    // Handle array fields that come as comma-separated strings
-                    if (in_array($field, ['preferred_sectors', 'ticket_sizes', 'expertise_areas', 'specialization'])) {
-                        if (is_string($value) && !empty($value)) {
-                            $profileData[$field] = array_filter(
-                                array_map('trim', explode(',', $value)),
-                                function($item) { return !empty($item); }
-                            );
-                        } elseif (is_array($value)) {
-                            $profileData[$field] = $value;
-                        }
-                    } else {
-                        $profileData[$field] = $value;
-                    }
+                    $profileData[$field] = $request->input($field);
                 }
             }
 
@@ -702,12 +617,7 @@ class ProfileController extends Controller
     private function getRoleDescription(RolesEnum $role): string
     {
         return match($role) {
-            RolesEnum::Startup => 'Access incubation, mentorship, and seed funding for your startup.',
-            RolesEnum::SMEOwner => 'Get trade financing, working capital support, and digital tools.',
-            RolesEnum::Investor => 'Fund startups and SMEs, earn returns, and track your portfolio.',
-            RolesEnum::NYPSenator => 'Access oversight tools to track impact and provide policy direction.',
-            RolesEnum::InstitutionalPartner => 'Collaborate, fund, and support APGA Worldwide initiatives.',
-            RolesEnum::TrainerMentorExpert => 'Offer training and guidance to youths, startups, and SMEs.',
+            RolesEnum::SundaySchoolTeacher => 'Teach, mentor, and support the church through Sunday School and Bible Study.',
             default => 'Join and serve your church community.',
         };
     }
@@ -737,30 +647,8 @@ class ProfileController extends Controller
     private function getRoleSpecificFields(string $role): array
     {
         return match($role) {
-            'startup' => [
-                'cac_registration', 'business_type', 'business_stage',
-                'years_in_business', 'employee_count', 'annual_revenue',
-                'founded_date', 'funding_needs', 'funding_history'
-            ],
-            'sme_owner' => [
-                'cac_registration', 'business_type', 'years_in_business',
-                'employee_count', 'annual_turnover', 'market_reach',
-                'loan_request_details'
-            ],
-            'investor' => [
-                'investor_type', 'preferred_sectors', 'ticket_sizes',
-                'accreditation_status', 'kyc_documents'
-            ],
-            'nyp_senator' => [
-                'district', 'office_address', 'official_id', 'contact_channels'
-            ],
-            'institutional_partner' => [
-                'institution_name', 'institution_registration', 'institution_sector',
-                'contact_persons', 'commitment_areas'
-            ],
-            'trainer_mentor_expert' => [
-                'bio', 'cv_path', 'linkedin_profile', 'expertise_areas',
-                'certifications', 'references', 'training_mode', 'title', 'specialization'
+            'sunday_school_teacher' => [
+                'teaching_area', 'class_level', 'lesson_focus', 'availability'
             ],
             default => []
         };

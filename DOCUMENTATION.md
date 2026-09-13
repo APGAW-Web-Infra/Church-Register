@@ -437,13 +437,6 @@ The church reporting dashboard now includes a more complete leadership summary v
 
 This gives pastors and church leaders a clearer operational snapshot of what is happening across the church without manually assembling the summary themselves.
 
-### Public Church Branding Polish
-**Status**: ✅ Legacy NYP pages converted to APGA church branding
-
-The remaining public-facing pages that still carried APGA Worldwide language were updated to reflect the actual church identity and experience. This includes church community pages, giving/support pages, church FAQs, feedback sections, ministry partner messaging, and the overall public breadcrumb language.
-
-The site now reads consistently as APGA Worldwide rather than a prior institutional platform.
-
 ### Public Board of Trustees Experience
 **Status**: ✅ Implemented
 
@@ -457,19 +450,6 @@ The public site now includes:
 - Responsive cards and profile layouts aligned with the APGA visual system
 
 ---
-
-## What Is Still Left To Be Achieved ❗
-
-### Phase 1: Reposition the App for Church Operations
-**Priority: HIGH**
-
-**Status**: ✅ Core church repositioning implemented; final content polish remains
-
-#### 1. Rebrand and restructure the site around the church identity
-- Replace remaining institutional/NYP language with church positioning where needed ✅ substantially implemented
-- Update homepage messaging, navigation, and layout to reflect church service, ministry, and worship ✅ implemented
-- Create a church-specific landing experience aligned to the brief ✅ implemented
-
 #### 2. Church member and leadership data model
 **Status**: ✅ Core models implemented; additional lifecycle models remain
 - `member_profiles`
