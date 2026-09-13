@@ -136,11 +136,9 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/church-admin/leadership', [ChurchOperationsController::class, 'leadership'])->name('church-admin.leadership');
         Route::post('/church-admin/leadership', [ChurchOperationsController::class, 'storeLeadership'])->name('church-admin.leadership.store');
         Route::get('/church-admin/reports', [ChurchOperationsController::class, 'reports'])->name('church-admin.reports');
-        Route::post('/church-admin/reports', [ChurchOperationsController::class, 'storeReport'])->name('church-admin.reports.store');
         Route::get('/church-admin/prayer-requests', [ChurchOperationsController::class, 'prayerRequests'])->name('church-admin.prayer-requests');
         Route::post('/church-admin/prayer-requests/{prayerRequest}/status', [ChurchOperationsController::class, 'updatePrayerRequestStatus'])->name('church-admin.prayer-requests.status');
         Route::get('/church-admin/scorecards', [ChurchOperationsController::class, 'scorecards'])->name('church-admin.scorecards');
-        Route::post('/church-admin/scorecards', [ChurchOperationsController::class, 'storeScorecard'])->name('church-admin.scorecards.store');
         Route::get('/church-admin/absentees', [ChurchOperationsController::class, 'absentees'])->name('church-admin.absentees');
         Route::post('/church-admin/absentees', [ChurchOperationsController::class, 'storeAbsentee'])->name('church-admin.absentees.store');
         Route::get('/church-admin/workers-meetings', [ChurchOperationsController::class, 'workersMeetings'])->name('church-admin.workers-meetings');

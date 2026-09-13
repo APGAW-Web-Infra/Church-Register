@@ -482,56 +482,6 @@ class ChurchOperationsController extends Controller
             ->all();
     }
 
-    public function storeReport(Request $request)
-    {
-        $validated = $request->validate([
-            'period_type' => ['required', 'in:weekly,monthly,quarterly,annual'],
-            'title' => ['required', 'string', 'max:255'],
-            'report_date' => ['required', 'date'],
-            'summary' => ['nullable', 'string'],
-            'new_members_count' => ['nullable', 'integer', 'min:0'],
-            'prayer_requests_count' => ['nullable', 'integer', 'min:0'],
-        ]);
-
-        [$periodStart, $periodEnd] = $this->reportPeriodBounds(
-            $validated['period_type'],
-            Carbon::parse($validated['report_date'])
-        );
-        $attendanceQuery = \App\Models\AttendanceRecord::query()
-            ->whereDate('service_date', '>=', $periodStart->toDateString())
-            ->whereDate('service_date', '<=', $periodEnd->toDateString())
-            ->whereIn('status', ['present', 'late']);
-        $attendanceCount = (clone $attendanceQuery)->count();
-        $firstTimersCount = (clone $attendanceQuery)->where('first_timer', true)->count();
-
-        ChurchReport::create([
-            'period_type' => $validated['period_type'],
-            'title' => $validated['title'],
-            'report_date' => $validated['report_date'],
-            'summary' => $validated['summary'] ?? null,
-            'attendance_count' => $attendanceCount,
-            'first_timers_count' => $firstTimersCount,
-            'new_members_count' => (int) ($validated['new_members_count'] ?? 0),
-            'prayer_requests_count' => (int) ($validated['prayer_requests_count'] ?? 0),
-        ]);
-
-        return redirect()->route('church-admin.reports')->with('success', 'Church report created successfully.');
-    }
-
-    private function reportPeriodBounds(string $periodType, Carbon $reportDate): array
-    {
-        return match ($periodType) {
-            'weekly' => (function () use ($reportDate): array {
-                $start = $reportDate->copy()->startOfWeek(Carbon::MONDAY);
-
-                return [$start, $start->copy()->addDays(6)];
-            })(),
-            'monthly' => [$reportDate->copy()->startOfMonth(), $reportDate->copy()->endOfMonth()],
-            'quarterly' => [$reportDate->copy()->firstOfQuarter(), $reportDate->copy()->lastOfQuarter()],
-            'annual' => [$reportDate->copy()->startOfYear(), $reportDate->copy()->endOfYear()],
-        };
-    }
-
     public function scorecards(Request $request)
     {
         $scorecards = ChurchScorecard::query()
@@ -542,9 +492,37 @@ class ChurchOperationsController extends Controller
             ->whereNotNull('validated_at')
             ->selectRaw('inviter_id, COUNT(*) as validated_count')
             ->groupBy('inviter_id')
-            ->with('inviter:id,name,referral_code')
+            ->with([
+                'inviter:id,name,referral_code',
+            ])
+            ->with([
+                'inviter.memberProfile:id,user_id,avatar_path',
+            ])
             ->orderByDesc('validated_count')
-            ->get();
+            ->get()
+            ->map(function (ChurchInvitation $invitation) {
+                $inviter = $invitation->inviter;
+                $memberProfile = $inviter?->memberProfile;
+                $avatarUrl = $memberProfile?->avatar_path
+                    ? route('member-profile.photo', $memberProfile)
+                    : null;
+
+                return [
+                    'inviter_id' => $invitation->inviter_id,
+                    'validated_count' => (int) $invitation->validated_count,
+                    'avatar_url' => $avatarUrl,
+                    'inviter' => $inviter ? [
+                        'id' => $inviter->id,
+                        'name' => $inviter->name,
+                        'referral_code' => $inviter->referral_code,
+                        'memberProfile' => $memberProfile ? [
+                            'id' => $memberProfile->id,
+                            'user_id' => $memberProfile->user_id,
+                            'avatar_path' => $memberProfile->avatar_path,
+                        ] : null,
+                    ] : null,
+                ];
+            });
 
         return Inertia::render('Church/ScorecardsDashboard', [
             'scorecards' => $scorecards,
@@ -553,33 +531,6 @@ class ChurchOperationsController extends Controller
                 'success' => $request->session()->get('success'),
             ],
         ]);
-    }
-
-    public function storeScorecard(Request $request)
-    {
-        $validated = $request->validate([
-            'period_type' => ['required', 'in:weekly,monthly,quarterly,annual'],
-            'title' => ['required', 'string', 'max:255'],
-            'report_date' => ['required', 'date'],
-            'invitation_count' => ['nullable', 'integer', 'min:0'],
-            'new_visitors_count' => ['nullable', 'integer', 'min:0'],
-            'conversion_count' => ['nullable', 'integer', 'min:0'],
-            'score' => ['nullable', 'integer', 'min:0', 'max:100'],
-            'notes' => ['nullable', 'string'],
-        ]);
-
-        ChurchScorecard::create([
-            'period_type' => $validated['period_type'],
-            'title' => $validated['title'],
-            'report_date' => $validated['report_date'],
-            'invitation_count' => (int) ($validated['invitation_count'] ?? 0),
-            'new_visitors_count' => (int) ($validated['new_visitors_count'] ?? 0),
-            'conversion_count' => (int) ($validated['conversion_count'] ?? 0),
-            'score' => (int) ($validated['score'] ?? 0),
-            'notes' => $validated['notes'] ?? null,
-        ]);
-
-        return redirect()->route('church-admin.scorecards')->with('success', 'Church scorecard created successfully.');
     }
 
     public function absentees(Request $request)
@@ -603,9 +554,14 @@ class ChurchOperationsController extends Controller
                 ->get();
 
             foreach ($records as $record) {
-                $memberName = $record->memberProfile
-                    ? trim(($record->memberProfile->first_name ?? '') . ' ' . ($record->memberProfile->last_name ?? ''))
+                $memberProfile = $record->memberProfile;
+                $memberName = $memberProfile
+                    ? trim(($memberProfile->first_name ?? '') . ' ' . ($memberProfile->last_name ?? ''))
                     : ($record->user?->name ?? 'Unknown member');
+
+                $photoUrl = $memberProfile && $memberProfile->avatar_path
+                    ? route('member-profile.photo', $memberProfile)
+                    : null;
 
                 $absentees->push([
                     'id' => $record->id,
@@ -614,6 +570,7 @@ class ChurchOperationsController extends Controller
                     'service_type' => $record->service_type,
                     'service_date' => $record->service_date->format('Y-m-d'),
                     'status' => $record->status,
+                    'photo_url' => $photoUrl,
                 ]);
             }
         }

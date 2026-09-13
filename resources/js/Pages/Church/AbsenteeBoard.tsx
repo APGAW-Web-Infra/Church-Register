@@ -1,5 +1,6 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, useForm } from '@inertiajs/react';
+import jsPDF from 'jspdf';
 
 interface AbsenteeRecord {
     id: number;
@@ -8,6 +9,7 @@ interface AbsenteeRecord {
     service_type: string;
     service_date: string;
     status: string;
+    photo_url?: string | null;
 }
 
 export default function AbsenteeBoard({ absentees, flash }: { absentees: AbsenteeRecord[]; flash?: { success?: string } }) {
@@ -22,6 +24,134 @@ export default function AbsenteeBoard({ absentees, flash }: { absentees: Absente
     const submit = (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
         post('/church-admin/absentees');
+    };
+
+    const exportAbsenteeReport = () => {
+        const pdf = new jsPDF({ unit: 'pt', format: 'a4' });
+        const pageWidth = pdf.internal.pageSize.getWidth();
+        const pageHeight = pdf.internal.pageSize.getHeight();
+        const margin = 40;
+        const innerWidth = pageWidth - margin * 2;
+        const serviceDate = absentees.length ? absentees[0].service_date : new Date().toISOString().slice(0, 10);
+        const totalAbsent = absentees.length;
+        const totalExcused = absentees.filter((entry) => entry.status === 'excused').length;
+
+        const drawHeader = (pageNumber = 1) => {
+            pdf.setFillColor(120, 16, 23);
+            pdf.rect(0, 0, pageWidth, 58, 'F');
+            pdf.setTextColor(255, 255, 255);
+            pdf.setFont('helvetica', 'bold');
+            pdf.setFontSize(20);
+            pdf.text('APGA Worldwide', margin, 28);
+            pdf.setFont('helvetica', 'normal');
+            pdf.setFontSize(11);
+            pdf.text('Church Leadership Absentee Report', margin, 46);
+
+            pdf.setTextColor(210, 210, 210);
+            pdf.setFont('helvetica', 'normal');
+            pdf.setFontSize(8);
+            pdf.text(`Page ${pageNumber}`, pageWidth - margin - 34, 48, { align: 'right' });
+        };
+
+        const drawFooter = (pageNumber: number) => {
+            pdf.setDrawColor(210, 210, 210);
+            pdf.line(margin, pageHeight - 44, pageWidth - margin, pageHeight - 44);
+            pdf.setTextColor(100, 116, 139);
+            pdf.setFont('helvetica', 'normal');
+            pdf.setFontSize(9);
+            pdf.text('APGA Worldwide | Church Leadership and Stewardship', margin, pageHeight - 26);
+            pdf.text(`Page ${pageNumber}`, pageWidth - margin - 34, pageHeight - 26, { align: 'right' });
+        };
+
+        const drawPageShell = (pageNumber: number) => {
+            drawHeader(pageNumber);
+
+            pdf.setTextColor(30, 41, 59);
+            pdf.setFont('helvetica', 'bold');
+            pdf.setFontSize(20);
+            pdf.text('Absentee Follow-Up Report', margin, 96);
+
+            pdf.setTextColor(75, 85, 99);
+            pdf.setFont('helvetica', 'normal');
+            pdf.setFontSize(11);
+            pdf.text(`Generated records: ${totalAbsent}`, margin, 122);
+            pdf.text(`Service visibility period: ${serviceDate}`, margin, 140);
+
+            pdf.setFillColor(245, 247, 250);
+            pdf.roundedRect(margin, 160, innerWidth, 82, 8, 8, 'F');
+            pdf.setDrawColor(210, 216, 222);
+            pdf.roundedRect(margin, 160, innerWidth, 82, 8, 8, 'S');
+
+            pdf.setTextColor(30, 41, 59);
+            pdf.setFont('helvetica', 'bold');
+            pdf.setFontSize(13);
+            pdf.text('Executive Summary', margin + 16, 184);
+
+            pdf.setFont('helvetica', 'normal');
+            pdf.setFontSize(10);
+            pdf.setTextColor(75, 85, 99);
+            pdf.text(`Total absentee records: ${totalAbsent}`, margin + 16, 204);
+            pdf.text(`Excused records: ${totalExcused}`, margin + 16, 220);
+            pdf.text(`Service date monitored: ${serviceDate}`, margin + 16, 238);
+
+            pdf.setFont('helvetica', 'bold');
+            pdf.setFontSize(10);
+            pdf.setTextColor(255, 255, 255);
+            pdf.setFillColor(120, 16, 23);
+            pdf.roundedRect(margin, 270 - 16, innerWidth, 24, 4, 4, 'F');
+            pdf.text('MEMBER', margin + 12, 270);
+            pdf.text('SERVICE', margin + 245, 270);
+            pdf.text('DATE', margin + 380, 270);
+            pdf.text('STATUS', margin + 470, 270);
+        };
+
+        const drawRow = (entry: AbsenteeRecord, rowY: number) => {
+            const rowHeight = 34;
+            const shortStatus = String(entry.status || 'absent').toLowerCase();
+            const statusFill = shortStatus === 'excused' ? [251, 191, 36] : [185, 49, 63];
+            const statusText = shortStatus === 'excused' ? 'excused' : 'absent';
+            const statusX = margin + innerWidth - 76;
+            const statusW = 58;
+
+            pdf.setFillColor(255, 255, 255);
+            pdf.roundedRect(margin, rowY - 15, innerWidth, rowHeight, 4, 4, 'F');
+            pdf.setDrawColor(222, 226, 230);
+            pdf.roundedRect(margin, rowY - 15, innerWidth, rowHeight, 4, 4, 'S');
+
+            pdf.setFont('helvetica', 'normal');
+            pdf.setTextColor(30, 41, 59);
+            pdf.text(entry.member_name, margin + 12, rowY + 3);
+            pdf.text(entry.service_type.replace('_', ' '), margin + 245, rowY + 3);
+            pdf.text(entry.service_date, margin + 380, rowY + 3);
+
+            pdf.setFillColor(statusFill[0], statusFill[1], statusFill[2]);
+            pdf.setTextColor(255, 255, 255);
+            pdf.roundedRect(statusX, rowY - 10, statusW, 21, 4, 4, 'F');
+            pdf.setFont('helvetica', 'bold');
+            pdf.setFontSize(10);
+            pdf.text(statusText, statusX + statusW / 2, rowY + 4, { align: 'center' });
+        };
+
+        let pageNumber = 1;
+        let rowY = 270 + 24;
+
+        drawPageShell(pageNumber);
+
+        absentees.forEach((entry) => {
+            if (rowY > pageHeight - 92) {
+                drawFooter(pageNumber);
+                pdf.addPage();
+                pageNumber += 1;
+                rowY = 270 + 24;
+                drawPageShell(pageNumber);
+            }
+
+            drawRow(entry, rowY);
+            rowY += 40;
+        });
+
+        drawFooter(pageNumber);
+        pdf.save('absentee-report.pdf');
     };
 
     const displayAbsentees = absentees.slice(0, 18);
@@ -48,7 +178,12 @@ export default function AbsenteeBoard({ absentees, flash }: { absentees: Absente
                             <p className="text-xs font-semibold uppercase tracking-[0.25em] text-red-300">6 × 3 attendance screen</p>
                             <h2 className="mt-2 text-2xl font-bold">People to follow up with</h2>
                         </div>
-                        <p className="text-xs text-slate-400">Showing the latest {Math.min(displayAbsentees.length, 18)} records</p>
+                        <div className="flex items-center gap-3">
+                            <p className="text-xs text-slate-400">Showing the latest {Math.min(displayAbsentees.length, 18)} records</p>
+                            <button type="button" onClick={exportAbsenteeReport} className="rounded-xl bg-red-700 px-4 py-2 text-xs font-bold uppercase tracking-[0.16em] text-white shadow-lg transition hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-300">
+                                Report
+                            </button>
+                        </div>
                     </div>
 
                     {displayAbsentees.length > 0 ? (
@@ -58,9 +193,13 @@ export default function AbsenteeBoard({ absentees, flash }: { absentees: Absente
                                     <div className="absolute inset-0 opacity-20 [background-image:linear-gradient(135deg,transparent_25%,rgba(248,113,113,0.5)_25%,rgba(248,113,113,0.5)_50%,transparent_50%,transparent_75%,rgba(248,113,113,0.5)_75%)] [background-size:8px_8px]" />
                                     <div className="relative z-10 flex h-full flex-col justify-between">
                                         <div className="flex items-start justify-between">
-                                            <div className="grid h-12 w-12 grid-cols-3 grid-rows-3 gap-0.5 rounded-xl bg-red-500/20 p-1 shadow-[0_0_24px_rgba(248,113,113,0.16)]">
-                                                {[0, 1, 2, 3, 4, 5, 6, 7, 8].map((pixel) => <span key={pixel} className={`rounded-sm ${pixel % 2 === index % 2 ? 'bg-red-300' : 'bg-red-900/70'}`} />)}
-                                            </div>
+                                            {entry.photo_url ? (
+                                                <img src={entry.photo_url} alt={entry.member_name} className="h-12 w-12 rounded-xl border border-white/20 bg-white object-cover shadow-[0_0_24px_rgba(248,113,113,0.16)]" />
+                                            ) : (
+                                                <div className="grid h-12 w-12 grid-cols-3 grid-rows-3 gap-0.5 rounded-xl bg-red-500/20 p-1 shadow-[0_0_24px_rgba(248,113,113,0.16)]">
+                                                    {[0, 1, 2, 3, 4, 5, 6, 7, 8].map((pixel) => <span key={pixel} className={`rounded-sm ${pixel % 2 === index % 2 ? 'bg-red-300' : 'bg-red-900/70'}`} />)}
+                                                </div>
+                                            )}
                                             <span className="font-mono text-[10px] text-red-300/70">0{index + 1}</span>
                                         </div>
                                         <div className="mt-4 min-w-0">

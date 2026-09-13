@@ -1,5 +1,5 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { Head, useForm } from '@inertiajs/react';
+import { Head } from '@inertiajs/react';
 
 interface Scorecard {
     id: number;
@@ -14,27 +14,17 @@ interface Scorecard {
 }
 
 interface ValidatedInvitationCount {
-    inviter?: { name?: string | null };
+    inviter?: {
+        id?: number;
+        name?: string | null;
+        referral_code?: string | null;
+        memberProfile?: { id?: number; user_id?: number; avatar_path?: string | null } | null;
+    } | null;
+    avatar_url?: string | null;
     validated_count: number;
 }
 
 export default function ScorecardsDashboard({ scorecards, validatedInvitationCounts = [], flash }: { scorecards: Scorecard[]; validatedInvitationCounts?: ValidatedInvitationCount[]; flash?: { success?: string } }) {
-    const { data, setData, post, processing } = useForm({
-        period_type: 'weekly',
-        title: '',
-        report_date: new Date().toISOString().slice(0, 10),
-        invitation_count: 0,
-        new_visitors_count: 0,
-        conversion_count: 0,
-        score: 0,
-        notes: '',
-    });
-
-    const submit = (event: React.FormEvent<HTMLFormElement>) => {
-        event.preventDefault();
-        post('/church-admin/scorecards');
-    };
-
     return (
         <AuthenticatedLayout>
             <Head title="Invitation League & Scorecards" />
@@ -51,110 +41,29 @@ export default function ScorecardsDashboard({ scorecards, validatedInvitationCou
                 )}
 
                 <div className="mb-8 rounded-3xl border border-red-100 bg-white p-5 shadow-sm">
-                    <h2 className="mb-4 text-lg font-semibold text-slate-900">Add scorecard entry</h2>
-                    <form onSubmit={submit} className="grid gap-4 md:grid-cols-2">
-                        <label className="text-sm font-medium text-slate-700">
-                            Period type
-                            <select
-                                value={data.period_type}
-                                onChange={(event) => setData('period_type', event.target.value)}
-                                className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm"
-                            >
-                                <option value="weekly">Weekly</option>
-                                <option value="monthly">Monthly</option>
-                                <option value="quarterly">Quarterly</option>
-                                <option value="annual">Annual</option>
-                            </select>
-                        </label>
-                        <label className="text-sm font-medium text-slate-700">
-                            Title
-                            <input
-                                value={data.title}
-                                onChange={(event) => setData('title', event.target.value)}
-                                className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm"
-                                required
-                            />
-                        </label>
-                        <label className="text-sm font-medium text-slate-700">
-                            Report date
-                            <input
-                                type="date"
-                                value={data.report_date}
-                                onChange={(event) => setData('report_date', event.target.value)}
-                                className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm"
-                                required
-                            />
-                        </label>
-                        <label className="text-sm font-medium text-slate-700">
-                            Score
-                            <input
-                                type="number"
-                                min={0}
-                                max={100}
-                                value={data.score}
-                                onChange={(event) => setData('score', Number(event.target.value) || 0)}
-                                className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm"
-                            />
-                        </label>
-                        <label className="text-sm font-medium text-slate-700">
-                            Invitations
-                            <input
-                                type="number"
-                                min={0}
-                                value={data.invitation_count}
-                                onChange={(event) => setData('invitation_count', Number(event.target.value) || 0)}
-                                className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm"
-                            />
-                        </label>
-                        <label className="text-sm font-medium text-slate-700">
-                            New visitors
-                            <input
-                                type="number"
-                                min={0}
-                                value={data.new_visitors_count}
-                                onChange={(event) => setData('new_visitors_count', Number(event.target.value) || 0)}
-                                className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm"
-                            />
-                        </label>
-                        <label className="text-sm font-medium text-slate-700">
-                            Conversions
-                            <input
-                                type="number"
-                                min={0}
-                                value={data.conversion_count}
-                                onChange={(event) => setData('conversion_count', Number(event.target.value) || 0)}
-                                className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm"
-                            />
-                        </label>
-                        <div className="md:col-span-2">
-                            <label className="text-sm font-medium text-slate-700">
-                                Notes
-                                <textarea
-                                    value={data.notes}
-                                    onChange={(event) => setData('notes', event.target.value)}
-                                    rows={3}
-                                    className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm"
-                                />
-                            </label>
-                        </div>
-                        <div className="md:col-span-2">
-                            <button
-                                type="submit"
-                                disabled={processing}
-                                className="rounded-full bg-red-600 px-5 py-2.5 text-sm font-semibold text-white disabled:bg-red-300"
-                            >
-                                {processing ? 'Saving...' : 'Create Scorecard'}
-                            </button>
-                        </div>
-                    </form>
-                </div>
-
-                <div className="mb-8 rounded-3xl border border-red-100 bg-white p-5 shadow-sm">
                     <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
                         <div><p className="text-xs font-semibold uppercase tracking-[0.2em] text-red-600">Validated invitation league</p><h2 className="mt-2 text-xl font-bold text-slate-900">Invitations confirmed by Sunday attendance</h2></div>
                         <p className="text-xs text-slate-500">Registration alone never counts.</p>
                     </div>
-                    {validatedInvitationCounts.length ? <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">{validatedInvitationCounts.map((entry, index) => <div key={`${entry.inviter?.name}-${index}`} className="rounded-2xl border border-red-100 bg-red-50 p-4"><p className="text-xs font-semibold uppercase tracking-[0.16em] text-red-700">#{index + 1}</p><p className="mt-2 font-semibold text-slate-900">{entry.inviter?.name || 'Member'}</p><p className="mt-1 text-2xl font-bold text-slate-900">{entry.validated_count}</p><p className="text-xs text-slate-500">validated invitations</p></div>)}</div> : <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-6 text-center text-sm text-slate-500">No validated invitations yet.</div>}
+                    {validatedInvitationCounts.length ? <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">{validatedInvitationCounts.map((entry, index) => (
+                        <div key={`${entry.inviter?.name}-${index}`} className="rounded-2xl border border-red-100 bg-red-50 p-4">
+                            <div className="flex items-center gap-3">
+                                {entry.avatar_url ? (
+                                    <img src={entry.avatar_url} alt={entry.inviter?.name || 'Member'} className="h-12 w-12 rounded-full object-cover border border-red-200 bg-white shadow-sm" />
+                                ) : (
+                                    <div className="flex h-12 w-12 items-center justify-center rounded-full border border-red-200 bg-white text-xs font-bold text-red-700">
+                                        {String(entry.inviter?.name || 'M').slice(0, 2).toUpperCase()}
+                                    </div>
+                                )}
+                                <div className="min-w-0">
+                                    <p className="text-xs font-semibold uppercase tracking-[0.16em] text-red-700">#{index + 1}</p>
+                                    <p className="mt-1 truncate font-semibold text-slate-900">{entry.inviter?.name || 'Member'}</p>
+                                </div>
+                            </div>
+                            <p className="mt-3 text-2xl font-bold text-slate-900">{entry.validated_count}</p>
+                            <p className="text-xs text-slate-500">validated invitations</p>
+                        </div>
+                    ))}</div> : <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-6 text-center text-sm text-slate-500">No validated invitations yet.</div>}
                 </div>
 
                 <div className="overflow-hidden rounded-3xl border border-red-100 bg-white shadow-sm">

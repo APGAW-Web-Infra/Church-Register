@@ -1,7 +1,6 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { Head, router, useForm } from '@inertiajs/react';
+import { Head, router } from '@inertiajs/react';
 import jsPDF from 'jspdf';
-import { useMemo } from 'react';
 
 interface Report {
     id: number;
@@ -69,15 +68,6 @@ export default function ReportsDashboard({
     };
     analytics?: Partial<ReportAnalytics>;
 }) {
-    const { data, setData, post, processing } = useForm({
-        period_type: 'weekly',
-        title: '',
-        report_date: new Date().toISOString().slice(0, 10),
-        summary: '',
-        new_members_count: 0,
-        prayer_requests_count: 0,
-    });
-
     const getLocalAnalytics = () => {
         const totalAttendance = reports.reduce((sum, report) => sum + Number(report.attendance_count ?? 0), 0);
         const totalFirstTimers = reports.reduce((sum, report) => sum + Number(report.first_timers_count ?? 0), 0);
@@ -136,12 +126,7 @@ export default function ReportsDashboard({
         };
     };
 
-    const analytics = { ...useMemo(getLocalAnalytics, [reports]), ...serverAnalytics };
-
-    const submit = (event: React.FormEvent<HTMLFormElement>) => {
-        event.preventDefault();
-        post('/church-admin/reports');
-    };
+    const analytics = { ...getLocalAnalytics(), ...(serverAnalytics ?? {}) };
 
     const exportReportsPdf = () => {
         const pdf = new jsPDF({ unit: 'pt', format: 'a4' });
@@ -192,9 +177,9 @@ export default function ReportsDashboard({
         drawHeader();
 
         pdf.setFillColor(248, 250, 252);
-        pdf.roundedRect(40, 84, pageWidth - 80, 100, 12, 12, 'F');
+        pdf.roundedRect(40, 84, pageWidth - 80, 110, 12, 12, 'F');
         pdf.setDrawColor(225, 229, 234);
-        pdf.roundedRect(40, 84, pageWidth - 80, 100, 12, 12, 'S');
+        pdf.roundedRect(40, 84, pageWidth - 80, 110, 12, 12, 'S');
         pdf.setTextColor(15, 23, 42);
         pdf.setFont('helvetica', 'bold');
         pdf.setFontSize(18);
@@ -207,10 +192,10 @@ export default function ReportsDashboard({
         pdf.setTextColor(15, 23, 42);
         pdf.setFont('helvetica', 'bold');
         pdf.setFontSize(12);
-        pdf.text('Key metrics', 58, 192);
+        pdf.text('Key metrics', 58, 208);
 
         let metricX = 58;
-        let metricY = 208;
+        let metricY = 224;
         summaryStats.forEach(([label, value]) => {
             const labelText = String(label);
             const valueText = String(value);
@@ -289,11 +274,6 @@ export default function ReportsDashboard({
             }
             y += 80;
         });
-
-        if (!reports.length) {
-            pdf.setFontSize(12);
-            pdf.text('No church reports available yet.', 40, 120);
-        }
 
         const totalPages = pdf.getNumberOfPages();
         for (let page = 1; page <= totalPages; page += 1) {
@@ -552,86 +532,6 @@ export default function ReportsDashboard({
                         <p className="mt-6 text-sm text-slate-500">Attendance trends will appear after the first church report is recorded.</p>
                     )}
                 </section>
-
-                <div className="mb-8 rounded-3xl border border-red-100 bg-white p-5 shadow-sm">
-                    <h2 className="mb-4 text-lg font-semibold text-slate-900">Add a report</h2>
-                    <form onSubmit={submit} className="grid gap-4 md:grid-cols-2">
-                        <label className="text-sm font-medium text-slate-700">
-                            Period type
-                            <select
-                                value={data.period_type}
-                                onChange={(event) => setData('period_type', event.target.value)}
-                                className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm"
-                            >
-                                <option value="weekly">Weekly</option>
-                                <option value="monthly">Monthly</option>
-                                <option value="quarterly">Quarterly</option>
-                                <option value="annual">Annual</option>
-                            </select>
-                        </label>
-                        <label className="text-sm font-medium text-slate-700">
-                            Title
-                            <input
-                                value={data.title}
-                                onChange={(event) => setData('title', event.target.value)}
-                                className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm"
-                                required
-                            />
-                        </label>
-                        <label className="text-sm font-medium text-slate-700">
-                            Report date
-                            <input
-                                type="date"
-                                value={data.report_date}
-                                onChange={(event) => setData('report_date', event.target.value)}
-                                className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm"
-                                required
-                            />
-                        </label>
-                        <div className="rounded-xl border border-red-100 bg-red-50 px-4 py-3 text-sm text-slate-700">
-                            <p className="font-semibold text-red-700">Attendance totals are calculated automatically</p>
-                            <p className="mt-1 text-xs text-slate-600">Present and late records within the selected period are used when this report is created.</p>
-                        </div>
-                        <label className="text-sm font-medium text-slate-700">
-                            New members
-                            <input
-                                type="number"
-                                min={0}
-                                value={data.new_members_count}
-                                onChange={(event) => setData('new_members_count', Number(event.target.value) || 0)}
-                                className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm"
-                            />
-                        </label>
-                        <label className="text-sm font-medium text-slate-700">
-                            Prayer requests
-                            <input
-                                type="number"
-                                min={0}
-                                value={data.prayer_requests_count}
-                                onChange={(event) => setData('prayer_requests_count', Number(event.target.value) || 0)}
-                                className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm"
-                            />
-                        </label>
-                        <label className="text-sm font-medium text-slate-700 md:col-span-2">
-                            Summary
-                            <textarea
-                                value={data.summary}
-                                onChange={(event) => setData('summary', event.target.value)}
-                                rows={3}
-                                className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm"
-                            />
-                        </label>
-                        <div className="md:col-span-2">
-                            <button
-                                type="submit"
-                                disabled={processing}
-                                className="rounded-full bg-red-600 px-5 py-2.5 text-sm font-semibold text-white disabled:bg-red-300"
-                            >
-                                {processing ? 'Saving...' : 'Create Report'}
-                            </button>
-                        </div>
-                    </form>
-                </div>
 
                 <div className="overflow-hidden rounded-3xl border border-red-100 bg-white shadow-sm">
                     <table className="min-w-full divide-y divide-red-100 text-left">
