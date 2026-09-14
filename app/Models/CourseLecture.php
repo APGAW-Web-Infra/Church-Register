@@ -2,10 +2,12 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Casts\Attribute;
+use Illuminate\Filesystem\FilesystemAdapter;
 use Illuminate\Support\Facades\Storage;
 
 class CourseLecture extends Model
@@ -235,24 +237,24 @@ class CourseLecture extends Model
             return '';
         }
 
-        // If it's already a full URL, return as is
         if (filter_var($path, FILTER_VALIDATE_URL)) {
             return $path;
         }
 
-        // If it's a storage path, convert to URL
-        if (Storage::disk('public')->exists($path)) {
-            return Storage::disk('public')->url($path);
+        /** @var FilesystemAdapter $disk */
+        $disk = Storage::disk('public');
+
+        if ($disk->exists($path)) {
+            return $disk->url($path);
         }
 
-        // Return as asset path
         return asset('storage/' . ltrim($path, '/'));
     }
 
     /**
      * Scope: Get lectures by type
      */
-    public function scopeByType($query, string $type)
+    public function scopeByType(Builder $query, string $type): Builder
     {
         return $query->where('type', $type);
     }
@@ -260,7 +262,7 @@ class CourseLecture extends Model
     /**
      * Scope: Get preview lectures
      */
-    public function scopePreview($query)
+    public function scopePreview(Builder $query): Builder
     {
         return $query->where('is_preview', true);
     }
@@ -268,7 +270,7 @@ class CourseLecture extends Model
     /**
      * Scope: Order by lecture order
      */
-    public function scopeOrdered($query)
+    public function scopeOrdered(Builder $query): Builder
     {
         return $query->orderBy('order');
     }

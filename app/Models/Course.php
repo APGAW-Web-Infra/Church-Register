@@ -143,7 +143,7 @@ class Course extends Model
         return $this->hasMany(CourseFavourite::class);
     }
 
-    public function isFavouredBy($userId)
+    public function isFavouredBy(int $userId): bool
     {
         return $this->favourites()->where('user_id', $userId)->exists();
     }
@@ -167,22 +167,22 @@ class Course extends Model
         return $query->where('is_featured', true);
     }
 
-    public function scopeByCategory(Builder $query, $categoryId): Builder
+    public function scopeByCategory(Builder $query, int $categoryId): Builder
     {
         return $query->where('course_category_id', $categoryId);
     }
 
-    public function scopeBySkillType(Builder $query, $skillTypeId): Builder
+    public function scopeBySkillType(Builder $query, int $skillTypeId): Builder
     {
         return $query->where('skill_type_id', $skillTypeId);
     }
 
-    public function scopeByDifficulty(Builder $query, $difficulty): Builder
+    public function scopeByDifficulty(Builder $query, string $difficulty): Builder
     {
         return $query->where('difficulty_level', $difficulty);
     }
 
-    public function scopeByPriceRange(Builder $query, $min = null, $max = null): Builder
+    public function scopeByPriceRange(Builder $query, ?float $min = null, ?float $max = null): Builder
     {
         if ($min !== null) {
             $query->where('price', '>=', $min);
@@ -292,12 +292,12 @@ class Course extends Model
     // Methods
     public function incrementEnrollmentCount(): void
     {
-        $this->increment('enrolled_count');
+        $this->increment('enrolled_count', 1, []);
     }
 
     public function decrementEnrollmentCount(): void
     {
-        $this->decrement('enrolled_count');
+        $this->decrement('enrolled_count', 1, []);
     }
 
     public function updateRating(): void

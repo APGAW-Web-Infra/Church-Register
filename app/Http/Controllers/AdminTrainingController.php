@@ -31,9 +31,9 @@ class AdminTrainingController extends Controller
             ->paginate(15);
 
         $stats = [
-            'total_courses' => Course::count(),
-            'published_courses' => Course::where('status', 'published')->count(),
-            'draft_courses' => Course::where('status', 'draft')->count(),
+            'total_courses' => Course::query()->count('*'),
+            'published_courses' => Course::query()->where('status', 'published')->count('*'),
+            'draft_courses' => Course::query()->where('status', 'draft')->count('*'),
             'total_students' => DB::table('course_enrollments')->distinct('user_id')->count(),
             'total_revenue' => DB::table('course_enrollments')
                 ->join('courses', 'course_enrollments.course_id', '=', 'courses.id')
@@ -53,11 +53,13 @@ class AdminTrainingController extends Controller
     {
         $categories = CourseCategory::active()->ordered()->get();
         $skillTypes = SkillType::active()->ordered()->get();
-        $instructors = User::role([
-            RolesEnum::SundaySchoolTeacher->value,
-            RolesEnum::Admin->value,
-            RolesEnum::SuperAdmin->value,
-        ])->orderBy('name')
+        $instructors = User::query()
+            ->role([
+                RolesEnum::SundaySchoolTeacher->value,
+                RolesEnum::Admin->value,
+                RolesEnum::SuperAdmin->value,
+            ])
+            ->orderBy('name', 'asc')
             ->get(['id', 'name', 'email']);
 
         return Inertia::render('Admin/Training/CreateCourse', [
@@ -554,11 +556,13 @@ private function buildCurriculumFromSections(array $sections): array
 
         $categories = CourseCategory::active()->ordered()->get();
         $skillTypes = SkillType::active()->ordered()->get();
-        $instructors = User::role([
-            RolesEnum::SundaySchoolTeacher->value,
-            RolesEnum::Admin->value,
-            RolesEnum::SuperAdmin->value,
-        ])->orderBy('name')
+        $instructors = User::query()
+            ->role([
+                RolesEnum::SundaySchoolTeacher->value,
+                RolesEnum::Admin->value,
+                RolesEnum::SuperAdmin->value,
+            ])
+            ->orderBy('name', 'asc')
             ->get(['id', 'name', 'email']);
 
         return Inertia::render('Admin/Training/EditCourse', [
@@ -614,7 +618,7 @@ private function buildCurriculumFromSections(array $sections): array
                 }
             }
 
-            $course->delete();
+            Course::query()->whereKey($course->getKey())->delete();
 
             return redirect()
                 ->route('admin.training.index')
@@ -636,7 +640,8 @@ private function buildCurriculumFromSections(array $sections): array
             'status' => 'required|in:draft,published,archived',
         ]);
 
-        Course::whereIn('id', $validated['course_ids'])
+        Course::query()
+            ->whereIn('id', $validated['course_ids'], 'and', false)
             ->update(['status' => $validated['status']]);
 
         return back()->with('success', 'Courses updated successfully!');
