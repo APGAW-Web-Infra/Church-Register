@@ -249,25 +249,37 @@ export default function Dashboard({
                         ))}
                     </div>
 
-                    <div className="mt-6 rounded-3xl border border-red-200 bg-white p-5 shadow-sm">
-                        <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-                            <div>
-                                <p className="text-xs font-semibold uppercase tracking-[0.25em] text-red-600">Invitation league</p>
-                                <h2 className="mt-2 text-xl font-bold text-slate-900">Invite someone to APGA</h2>
-                                <p className="mt-2 text-sm text-slate-600">An invitation counts only after registration through your link and qualifying Sunday attendance.</p>
+                    <section className="mt-6 rounded-3xl border border-red-200 bg-white p-4 shadow-sm">
+                        <div className="flex flex-wrap items-start justify-between gap-4">
+                            <div className="min-w-0">
+                                <p className="text-[11px] font-black uppercase tracking-[0.30em] text-red-600">Invitation league</p>
+                                <h2 className="mt-2 text-2xl font-bold text-slate-900">Invite someone to APGA</h2>
+                                <p className="mt-2 max-w-2xl text-sm text-slate-600">An invitation counts only after registration through your link and qualifying Sunday attendance.</p>
                             </div>
-                            <div className="flex gap-5 text-sm">
-                                <span><strong className="block text-xl text-slate-900">{user.referral?.total ?? 0}</strong><span className="text-slate-500">Total invited</span></span>
-                                <span><strong className="block text-xl text-slate-900">{user.referral?.validated ?? 0}</strong><span className="text-slate-500">Validated</span></span>
-                                <span><strong className="block text-xl text-slate-900">{user.referral?.pending ?? 0}</strong><span className="text-slate-500">Pending</span></span>
+
+                            <div className="flex flex-wrap items-center gap-5 text-center">
+                                <span className="min-w-[74px]">
+                                    <strong className="block text-xl font-bold text-slate-900">{user.referral?.total ?? 0}</strong>
+                                    <span className="block text-xs text-slate-500">Total invited</span>
+                                </span>
+                                <span className="min-w-[74px]">
+                                    <strong className="block text-xl font-bold text-slate-900">{user.referral?.validated ?? 0}</strong>
+                                    <span className="block text-xs text-slate-500">Validated</span>
+                                </span>
+                                <span className="min-w-[74px]">
+                                    <strong className="block text-xl font-bold text-slate-900">{user.referral?.pending ?? 0}</strong>
+                                    <span className="block text-xs text-slate-500">Pending</span>
+                                </span>
                             </div>
                         </div>
-                        <div className="mt-4 flex flex-col gap-3 sm:flex-row">
-                            <input readOnly value={user.referral?.link ?? ''} aria-label="Referral link" className="min-w-0 flex-1 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-600" />
+
+                        <div className="mt-4 flex flex-wrap items-center gap-3">
+                            <input readOnly value={user.referral?.link ?? ''} aria-label="Referral link" className="min-w-[290px] flex-1 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-600" />
                             <button type="button" onClick={async () => { await navigator.clipboard.writeText(user.referral.link); setCopiedReferral(true); window.setTimeout(() => setCopiedReferral(false), 1800); }} className="rounded-full bg-red-600 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-red-500">{copiedReferral ? 'Copied' : 'Copy referral link'}</button>
                         </div>
-                        <p className="mt-2 text-xs text-slate-500">Referral code: <span className="font-semibold tracking-wider text-slate-700">{user.referral?.code}</span></p>
-                    </div>
+
+                        <p className="mt-3 text-xs text-slate-500">Referral code: <span className="font-semibold tracking-wider text-slate-700">{user.referral?.code}</span></p>
+                    </section>
 
                     <div className="mt-6 grid gap-4 md:grid-cols-2">
                         <Link href={route('training.dashboard')} className="rounded-2xl border border-red-100 bg-white p-5 shadow-sm transition hover:border-red-300 hover:bg-red-50">
@@ -361,123 +373,86 @@ export default function Dashboard({
                         </div>
                     </div>
 
-                    <div id="events" className="mt-6 grid scroll-mt-36 gap-6 xl:grid-cols-[1.05fr_0.95fr]">
-                        <div className="rounded-3xl border border-red-100 bg-white p-5 shadow-sm">
-                            <div className="mb-4 flex items-center justify-between gap-3">
+                    <div id="events" className="mt-6 grid scroll-mt-36 gap-4 xl:grid-cols-3">
+                        <section className="rounded-2xl border border-red-100 bg-white p-4 shadow-sm transition hover:shadow-md">
+                            <div className="mb-3 flex items-center justify-between gap-3">
                                 <div>
-                                    <p className="text-xs font-semibold uppercase tracking-[0.25em] text-red-600">Events</p>
-                                    <h2 className="mt-2 text-xl font-bold text-slate-900">Upcoming church programs</h2>
+                                    <p className="text-[11px] font-black uppercase tracking-[0.24em] text-red-600">Actions</p>
+                                    <h2 className="mt-2 text-lg font-bold text-slate-900">Quick tools</h2>
                                 </div>
-                                <Link href={route('events')} className="rounded-full bg-gradient-to-r from-blue-600 via-red-500 to-red-600 px-3 py-1.5 text-xs font-semibold text-white">
-                                    View calendar
-                                </Link>
+                                <span className="rounded-full border border-red-200 bg-red-50 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.14em] text-red-700">Tools</span>
                             </div>
 
-                            <div className="space-y-3">
-                                {churchEvents.length > 0 ? churchEvents.map((event) => (
-                                    <div key={event.id} className="flex items-start justify-between gap-4 rounded-2xl border border-slate-200 bg-slate-50 p-4 transition hover:border-red-300 hover:bg-red-50">
-                                        <div>
-                                            <Link href={route('events.detail', event.id)} className="font-semibold text-slate-900 hover:text-red-700">{event.title}</Link>
-                                            <p className="mt-1 text-sm text-slate-600">{event.date}</p>
-                                            <p className="mt-1 text-xs text-slate-500">{event.location}</p>
-                                            <p className="mt-2 text-xs text-slate-500">{event.registration_deadline ? `Register by ${event.registration_deadline}` : 'Registration open'}</p>
-                                        </div>
-                                        <div className="flex shrink-0 flex-col items-end gap-2">
-                                            <span className="rounded-full bg-red-100 px-2.5 py-1 text-xs font-semibold text-red-700">{event.type}</span>
-                                            {event.is_registered ? <span className="text-xs font-semibold text-red-700">Registered</span> : <button type="button" onClick={() => router.post(route('events.register', event.id))} className="rounded-full border border-red-200 px-3 py-1.5 text-xs font-semibold text-red-700 transition hover:bg-red-100">Register</button>}
-                                        </div>
-                                    </div>
-                                )) : <p className="rounded-2xl bg-red-50 p-4 text-sm text-slate-600">No upcoming church programs scheduled.</p>}
-                            </div>
-                        </div>
-
-                        <div className="rounded-3xl border border-red-100 bg-white p-5 shadow-sm">
-                            <p className="text-xs font-semibold uppercase tracking-[0.25em] text-red-600">Actions</p>
-                            <h2 className="mt-2 text-xl font-bold text-slate-900">Quick tools</h2>
-
-                            <div className="mt-4 grid gap-3 sm:grid-cols-2">
-                                {actions.map((action) => (
+                            <div className="grid grid-cols-2 gap-2">
+                                {actions.slice(0, 6).map((action) => (
                                     <button
                                         key={action.id}
                                         type="button"
                                         onClick={() => handleQuickAction(action)}
-                                        className="rounded-2xl border border-slate-200 bg-slate-50 p-4 text-left transition hover:border-red-200 hover:bg-red-50"
+                                        className="rounded-xl border border-slate-200 bg-slate-50 px-2 py-2 text-left transition hover:border-red-200 hover:bg-red-50 hover:shadow-sm"
                                     >
-                                        <div className={`mb-3 inline-flex h-10 w-10 items-center justify-center rounded-xl text-lg text-white ${action.color}`}>
-                                            {action.icon}
-                                        </div>
-                                        <p className="font-semibold text-slate-900">{action.title}</p>
-                                        <p className="mt-1 text-xs text-slate-600">{action.description}</p>
+                                        <div className={`mb-2 inline-flex h-8 w-8 items-center justify-center rounded-lg text-sm text-white ${action.color}`}>{action.icon}</div>
+                                        <p className="truncate font-semibold text-[11px] text-slate-900">{action.title}</p>
+                                        <p className="mt-1 line-clamp-2 text-[10px] leading-4 text-slate-600">{action.description}</p>
                                     </button>
                                 ))}
                             </div>
-                        </div>
-                    </div>
+                        </section>
 
-                    <div id="community" className="mt-6 grid scroll-mt-36 gap-6 xl:grid-cols-[1fr_1fr]">
-                        <div className="rounded-3xl border border-red-100 bg-white p-5 shadow-sm">
-                            <div className="mb-4 flex items-center justify-between gap-3">
+                        <section className="rounded-2xl border border-red-100 bg-white p-4 shadow-sm transition hover:shadow-md">
+                            <div className="mb-3 flex items-center justify-between gap-3">
                                 <div>
-                                    <p className="text-xs font-semibold uppercase tracking-[0.25em] text-red-600">Community</p>
-                                    <h2 className="mt-2 text-xl font-bold text-slate-900">Small groups</h2>
+                                    <p className="text-[11px] font-black uppercase tracking-[0.24em] text-red-600">Community</p>
+                                    <h2 className="mt-2 text-lg font-bold text-slate-900">Small groups</h2>
                                 </div>
-                                <Link href={route('small-groups')} className="rounded-full border border-red-200 px-3 py-1.5 text-xs font-semibold text-red-700">
+                                <Link href={route('small-groups')} className="rounded-full border border-red-200 px-3 py-1.5 text-[10px] font-bold text-red-700 transition hover:bg-red-50">
                                     View groups
                                 </Link>
                             </div>
 
-                            <div className="space-y-3">
-                                {churchGroups.length > 0 ? churchGroups.map((group) => (
-                                    <div key={group.name} className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                            <div className="space-y-2">
+                                {churchGroups.length > 0 ? churchGroups.slice(0, 3).map((group) => (
+                                    <div key={group.name} className="rounded-xl border border-slate-200 bg-slate-50 p-3">
                                         <div className="flex items-center justify-between gap-3">
-                                            <p className="font-semibold text-slate-900">{group.name}</p>
-                                            <span className="rounded-full bg-red-100 px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.12em] text-red-700">
-                                                Active
-                                            </span>
+                                            <p className="truncate text-sm font-semibold text-slate-900">{group.name}</p>
+                                            <span className="rounded-full bg-red-100 px-2 py-1 text-[9px] font-bold uppercase tracking-[0.12em] text-red-700">Active</span>
                                         </div>
-                                        <p className="mt-2 text-sm text-slate-600">{group.members}</p>
-                                        <p className="mt-1 text-xs text-slate-500">{group.time}</p>
-                                        <button type="button" onClick={() => router.post(route('small-groups.join', group.id))} className="mt-3 rounded-full border border-red-200 px-3 py-1.5 text-xs font-semibold text-red-700 transition hover:bg-red-100">
-                                            Join group
-                                        </button>
+                                        <p className="mt-1 text-[11px] text-slate-600">{group.members}</p>
                                     </div>
-                                )) : <p className="rounded-2xl bg-red-50 p-4 text-sm text-slate-600">No active small groups published yet.</p>}
+                                )) : <p className="rounded-xl bg-red-50 p-3 text-sm text-slate-600">No active small groups published yet.</p>}
                             </div>
-                        </div>
+                        </section>
 
-                        <div className="rounded-3xl border border-red-100 bg-white p-5 shadow-sm">
-                            <div className="mb-4 flex items-center justify-between gap-3">
+                        <section className="rounded-2xl border border-red-100 bg-white p-4 shadow-sm transition hover:shadow-md">
+                            <div className="mb-3 flex items-center justify-between gap-3">
                                 <div>
-                                    <p className="text-xs font-semibold uppercase tracking-[0.25em] text-red-600">Latest</p>
-                                    <h2 className="mt-2 text-xl font-bold text-slate-900">Recent activity</h2>
+                                    <p className="text-[11px] font-black uppercase tracking-[0.24em] text-red-600">Latest</p>
+                                    <h2 className="mt-2 text-lg font-bold text-slate-900">Recent activity</h2>
                                 </div>
-                                <Link href={route('dashboard')} className="rounded-full bg-red-100 px-3 py-1.5 text-xs font-semibold text-red-700">
+                                <Link href={route('dashboard')} className="rounded-full border border-red-200 bg-red-50 px-3 py-1.5 text-[10px] font-bold text-red-700 transition hover:bg-red-100">
                                     Refresh
                                 </Link>
                             </div>
 
-                            <div className="space-y-3">
-                                {recentChurchActivity.length > 0 ? recentChurchActivity.map((item) => (
-                                    <div key={item.title} className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                            <div className="space-y-2">
+                                {recentChurchActivity.length > 0 ? recentChurchActivity.slice(0, 3).map((item) => (
+                                    <div key={item.title} className="rounded-xl border border-slate-200 bg-slate-50 p-3">
                                         <div className="flex items-center justify-between gap-3">
-                                            <p className="font-semibold text-slate-900">{item.title}</p>
-                                            <span className={`rounded-full px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.12em] ${
+                                            <p className="truncate text-sm font-semibold text-slate-900">{item.title}</p>
+                                            <span className={`rounded-full px-2 py-1 text-[9px] font-bold uppercase tracking-[0.12em] ${
                                                 item.status === 'success'
                                                     ? 'bg-red-100 text-red-700'
                                                     : item.status === 'pending'
                                                         ? 'bg-amber-100 text-amber-700'
                                                         : 'bg-red-100 text-red-700'
-                                            }`}>
-                                                {item.status}
-                                            </span>
+                                            }`}>{item.status}</span>
                                         </div>
-                                        <p className="mt-2 text-sm text-slate-600">{item.detail}</p>
-                                        <p className="mt-2 text-xs text-slate-500">{item.time}</p>
-                                        {item.action_url && <a href={item.action_url} className="mt-3 inline-block text-xs font-semibold text-red-700 hover:text-red-900">{item.action_label}</a>}
+                                        <p className="mt-1 text-[11px] text-slate-600">{item.detail}</p>
+                                        <p className="mt-1 text-[10px] text-slate-500">{item.time}</p>
                                     </div>
-                                )) : <p className="rounded-2xl bg-red-50 p-4 text-sm text-slate-600">No recent church activity recorded yet.</p>}
+                                )) : <p className="rounded-xl bg-red-50 p-3 text-sm text-slate-600">No recent church activity recorded yet.</p>}
                             </div>
-                        </div>
+                        </section>
                     </div>
                 </div>
             </div>
