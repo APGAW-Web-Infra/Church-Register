@@ -18,6 +18,11 @@ The platform now includes a working church operations foundation spanning public
 — Ministry, leadership, and unit-leader profile management
 — Workers meetings, events, media board, announcements, newsletters, and outreach/communications tools
 — Public announcements board, prayer requests, contact form, and member messaging workflows
+## DASHBOARD UX & QUICK ACTIONS:
+— Dashboard quick actions now use safe, readable display glyphs such as community, ministry, and fellowship icons instead of embedding raw SVG path strings in the action data payload.
+— The dashboard action, community, and activity surfaces are kept as a compact three-card row with consistent small-card styling for the church dashboard.
+— Dashboard postcards and feature panels now emphasize portability, readability, and a low-noise church admin experience.
+
 ## PUBLIC CHURCH EXPERIENCE:
 — Church ministries, leadership board, board of trustees, media gallery, and sermon/story presentation
 — Public event calendar with registration controls, deadlines, capacity rules, and downloadable iCalendar reminders
