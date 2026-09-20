@@ -15,7 +15,7 @@ interface Member {
     avatar_url?: string | null;
 }
 
-export default function MemberDirectory({ members, flash, departments, filters }: { members: Member[]; flash?: { success?: string }; departments?: string[]; filters?: { search?: string; status?: string; department?: string } }) {
+export default function MemberDirectory({ members, flash, departments, filters }: { members: Member[]; flash?: { success?: string }; departments?: string[]; filters?: { search?: string; status?: string; membership_status?: string; department?: string } }) {
     const { data, setData, post, processing } = useForm<{
         first_name: string;
         last_name: string;
@@ -41,7 +41,7 @@ export default function MemberDirectory({ members, flash, departments, filters }
         post('/church-admin/members');
     };
 
-    const handleFilterChange = (key: 'search' | 'status' | 'department', value: string) => {
+    const handleFilterChange = (key: 'search' | 'status' | 'membership_status' | 'department', value: string) => {
         const params = new URLSearchParams(window.location.search);
         if (value) {
             params.set(key, value);
@@ -185,6 +185,14 @@ export default function MemberDirectory({ members, flash, departments, filters }
                                 <option value="">All</option>
                                 <option value="active">Active</option>
                                 <option value="inactive">Inactive</option>
+                            </select>
+                        </label>
+                        <label className="text-sm font-medium text-slate-700">
+                            Membership
+                            <select value={filters?.membership_status ?? ''} onChange={(event) => handleFilterChange('membership_status', event.target.value)} className="mt-1 block rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm">
+                                <option value="">All membership types</option>
+                                <option value="member">Member</option>
+                                <option value="first_timer">First timer</option>
                             </select>
                         </label>
                         <label className="text-sm font-medium text-slate-700">

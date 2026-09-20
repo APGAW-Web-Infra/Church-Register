@@ -253,16 +253,21 @@ export default function AdminDashboard({ churchData }: { churchData: ChurchData 
                         </div>
                         <div className="mt-5 grid gap-3 sm:grid-cols-2">
                             {[
-                                { label: 'Active members', value: lifecycle.total_active_members, tone: 'from-emerald-500 to-teal-500' },
-                                { label: 'First timers', value: lifecycle.total_first_timers, tone: 'from-red-500 to-rose-500' },
-                                { label: 'Inactive', value: lifecycle.total_inactive_members, tone: 'from-slate-500 to-slate-700' },
-                                { label: 'Needs follow-up', value: lifecycle.needs_follow_up, tone: 'from-amber-500 to-orange-500' },
+                                { label: 'Active members', value: lifecycle.total_active_members, tone: 'from-emerald-500 to-teal-500', href: route('church-admin.members', { status: 'active' }) },
+                                { label: 'First timers', value: lifecycle.total_first_timers, tone: 'from-red-500 to-rose-500', href: route('church-admin.members', { membership_status: 'first_timer' }) },
+                                { label: 'Inactive', value: lifecycle.total_inactive_members, tone: 'from-slate-500 to-slate-700', href: route('church-admin.members', { status: 'inactive' }) },
+                                { label: 'Needs follow-up', value: lifecycle.needs_follow_up, tone: 'from-amber-500 to-orange-500', href: route('church-admin.absentees') },
                             ].map((item) => (
-                                <div key={item.label} className="rounded-2xl border border-amber-200 bg-white/80 p-3 shadow-sm">
+                                <Link key={item.label} href={item.href} className="group rounded-2xl border border-amber-200 bg-white/80 p-3 shadow-sm transition hover:-translate-y-0.5 hover:border-amber-400 hover:shadow-md">
                                     <div className={`mb-3 h-1.5 rounded-full bg-gradient-to-r ${item.tone}`} />
-                                    <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">{item.label}</p>
-                                    <p className="mt-2 text-2xl font-black text-slate-900">{item.value}</p>
-                                </div>
+                                    <div className="flex items-start justify-between gap-2">
+                                        <div>
+                                            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">{item.label}</p>
+                                            <p className="mt-2 text-2xl font-black text-slate-900">{item.value}</p>
+                                        </div>
+                                        <span aria-hidden="true" className="text-lg text-amber-700 transition group-hover:translate-x-1">→</span>
+                                    </div>
+                                </Link>
                             ))}
                         </div>
                     </div>

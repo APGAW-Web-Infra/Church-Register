@@ -381,6 +381,10 @@ class ChurchAdminController extends Controller
             }
         }
 
+        if ($request->filled('membership_status')) {
+            $query->where('membership_status', $request->input('membership_status'));
+        }
+
         if ($request->filled('department')) {
             $query->where('department', $request->input('department'));
         }
@@ -413,6 +417,7 @@ class ChurchAdminController extends Controller
             'filters' => [
                 'search' => $request->input('search'),
                 'status' => $request->input('status'),
+                'membership_status' => $request->input('membership_status'),
                 'department' => $request->input('department'),
             ],
             'departments' => $departments,
