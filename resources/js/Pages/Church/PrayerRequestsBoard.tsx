@@ -52,8 +52,9 @@ export default function PrayerRequestsBoard({ prayerRequests, flash }: { prayerR
 
         visibleRequests.forEach((request, index) => {
             const lines = pdf.splitTextToSize(request.message, pageWidth - 40);
-            const blockHeight = 34 + lines.length * 5;
-            if (y + blockHeight > 275) {
+            const blockHeight = 68;
+            const requestOnPage = index % 3;
+            if (requestOnPage === 0 && index > 0) {
                 pdf.addPage();
                 y = 20;
             }
@@ -69,7 +70,7 @@ export default function PrayerRequestsBoard({ prayerRequests, flash }: { prayerR
             if (request.email) pdf.text(request.email, 25, y + 16);
             pdf.setFontSize(9);
             pdf.setTextColor(51, 65, 85);
-            pdf.text(lines, 25, y + 24);
+            pdf.text(lines.slice(0, 8), 25, y + 24);
             y += blockHeight + 8;
         });
 

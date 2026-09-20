@@ -127,6 +127,7 @@ export default function AdminDashboard({ churchData }: { churchData: ChurchData 
         { label: 'Service register', description: 'Track Sunday attendance', href: route('church-admin.service-register'), tone: 'from-red-600 to-rose-500' },
         { label: 'User management', description: 'Manage staff and admins', href: route('church-admin.users'), tone: 'from-slate-700 to-slate-500' },
         { label: 'Reports', description: 'Leadership analytics', href: route('church-admin.reports'), tone: 'from-orange-500 to-amber-400' },
+        { label: 'Prayer requests', description: 'Review, compile, and print prayer care', href: route('church-admin.prayer-requests'), tone: 'from-sky-600 to-cyan-500' },
         { label: 'Scorecards', description: 'Invitation and conversion stats', href: route('church-admin.scorecards'), tone: 'from-violet-600 to-indigo-500' },
         { label: 'Absentees', description: 'Follow-up and recovery', href: route('church-admin.absentees'), tone: 'from-slate-700 to-slate-500' },
         { label: 'Workers meeting', description: 'Team coordination', href: route('church-admin.workers-meetings'), tone: 'from-emerald-600 to-teal-500' },
