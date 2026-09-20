@@ -18,18 +18,19 @@ class ChurchAdminController extends Controller
         $userCount = User::query()->count('*');
         $memberCount = MemberProfile::count();
         $latestServiceDate = AttendanceRecord::query()->max('service_date');
+        $latestServiceDateString = $latestServiceDate ? Carbon::parse($latestServiceDate)->toDateString() : null;
 
         $liveAttendanceQuery = AttendanceRecord::query();
-        if ($latestServiceDate) {
-            $liveAttendanceQuery->whereDate('service_date', $latestServiceDate);
+        if ($latestServiceDateString) {
+            $liveAttendanceQuery->whereRaw('DATE(service_date) = ?', [$latestServiceDateString]);
         }
 
         $qualifyingAttendanceForLatestService = (clone $liveAttendanceQuery)->whereIn('status', ['present', 'late']);
 
-        $attendanceToday = $latestServiceDate
+        $attendanceToday = $latestServiceDateString
             ? (clone $qualifyingAttendanceForLatestService)->count()
             : 0;
-        $firstTimersToday = $latestServiceDate
+        $firstTimersToday = $latestServiceDateString
             ? (clone $qualifyingAttendanceForLatestService)->where('first_timer', true)->count()
             : 0;
 
@@ -335,9 +336,13 @@ class ChurchAdminController extends Controller
         $memberProfiles = MemberProfile::query()
             ->with('user:id,name,referral_code')
             ->where('is_active', true)
-            ->orderBy('first_name')
-            ->orderBy('last_name')
-            ->get();
+            ->orderByRaw('LOWER(first_name) ASC')
+            ->orderByRaw('LOWER(last_name) ASC')
+            ->get()
+            ->sortBy(function (MemberProfile $member) {
+                return strtolower(trim(($member->first_name ?? '') . ' ' . ($member->last_name ?? '')));
+            }, SORT_REGULAR, false)
+            ->values();
 
         $attendance = AttendanceRecord::query()
             ->where('service_type', $serviceType)
@@ -388,7 +393,7 @@ class ChurchAdminController extends Controller
             'members' => $memberProfiles->map(fn (MemberProfile $member) => [
                 'id' => $member->id,
                 'name' => trim(($member->first_name ?? '') . ' ' . ($member->last_name ?? '')) ?: ($member->user?->name ?? 'Unknown member'),
-            ])->values()->all(),
+            ])->sortBy('name', SORT_NATURAL | SORT_FLAG_CASE)->values()->all(),
             'flash' => ['success' => $request->session()->get('success')],
         ]);
     }

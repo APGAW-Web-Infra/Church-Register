@@ -1,5 +1,6 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, Link, router } from '@inertiajs/react';
+import { useMemo, useState } from 'react';
 
 interface RegisterWeek {
     date: string;
@@ -40,6 +41,23 @@ export default function ServiceRegister({
     members: { id: number; name: string }[];
     flash?: { success?: string };
 }) {
+    const [searchTerm, setSearchTerm] = useState('');
+
+    const visibleRows = useMemo(() => {
+        const normalizedSearch = searchTerm.trim().toLowerCase();
+
+        if (!normalizedSearch) {
+            return rows;
+        }
+
+        return rows.filter((row) => {
+            const nameMatches = row.name.toLowerCase().includes(normalizedSearch);
+            const referralMatches = (row.referral_code ?? '').toLowerCase().includes(normalizedSearch);
+
+            return nameMatches || referralMatches;
+        });
+    }, [rows, searchTerm]);
+
     const updateMonth = (value: string) => {
         const params: Record<string, string> = { month: value, service_type: serviceType };
         router.get(route('church-admin.service-register'), params, { preserveState: true, replace: true });
@@ -105,7 +123,20 @@ export default function ServiceRegister({
                     <div className="rounded-2xl border border-red-100 bg-white p-4 shadow-sm"><p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Service dates</p><p className="mt-2 text-xl font-bold text-slate-900">{serviceDates.length}</p></div>
                 </div>
 
-                <div className="mb-4 flex flex-wrap items-center gap-3 text-xs text-slate-600"><span className="font-semibold text-slate-700">Status:</span><span><b className="mr-1 rounded bg-emerald-100 px-1.5 py-0.5 text-emerald-700">P</b> Present</span><span><b className="mr-1 rounded bg-amber-100 px-1.5 py-0.5 text-amber-700">L</b> Late</span><span><b className="mr-1 rounded bg-rose-100 px-1.5 py-0.5 text-rose-700">A</b> Absent</span><span><b className="mr-1 rounded bg-slate-200 px-1.5 py-0.5 text-slate-700">E</b> Excused</span></div>
+                <div className="mb-4 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+                    <div className="flex flex-wrap items-center gap-3 text-xs text-slate-600"><span className="font-semibold text-slate-700">Status:</span><span><b className="mr-1 rounded bg-emerald-100 px-1.5 py-0.5 text-emerald-700">P</b> Present</span><span><b className="mr-1 rounded bg-amber-100 px-1.5 py-0.5 text-amber-700">L</b> Late</span><span><b className="mr-1 rounded bg-rose-100 px-1.5 py-0.5 text-rose-700">A</b> Absent</span><span><b className="mr-1 rounded bg-slate-200 px-1.5 py-0.5 text-slate-700">E</b> Excused</span></div>
+
+                    <label className="flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 shadow-sm">
+                        <span className="font-medium">Search</span>
+                        <input
+                            type="search"
+                            value={searchTerm}
+                            onChange={(event) => setSearchTerm(event.target.value)}
+                            placeholder="Search member or code"
+                            className="w-56 border-0 bg-transparent text-sm text-slate-700 placeholder:text-slate-400 focus:outline-none"
+                        />
+                    </label>
+                </div>
 
                 <div className="overflow-hidden rounded-3xl border border-red-100 bg-white shadow-sm">
                     <div className="overflow-x-auto">
@@ -123,7 +154,7 @@ export default function ServiceRegister({
                                 </tr>
                             </thead>
                             <tbody>
-                                {rows.length > 0 ? rows.map((row) => <tr key={row.id} className="group hover:bg-red-50/40">
+                                {visibleRows.length > 0 ? visibleRows.map((row) => <tr key={row.id} className="group hover:bg-red-50/40">
                                     <td className="sticky left-0 z-[1] border-b border-r border-red-50 bg-white px-4 py-3 text-sm font-semibold text-slate-800 group-hover:bg-red-50/40">{row.name}</td>
                                     <td className="border-b border-r border-red-50 px-4 py-3 font-mono text-xs text-slate-500">{row.referral_code || '—'}</td>
                                     {serviceDates.map((serviceDate, index) => {
@@ -153,7 +184,7 @@ export default function ServiceRegister({
                                             </td>
                                         );
                                     })}
-                                </tr>) : <tr><td colSpan={serviceDates.length + 2} className="px-6 py-12 text-center text-sm text-slate-500">No active members are available for this register.</td></tr>}
+                                </tr>) : <tr><td colSpan={serviceDates.length + 2} className="px-6 py-12 text-center text-sm text-slate-500">{searchTerm ? 'No member matches your search in this register.' : 'No active members are available for this register.'}</td></tr>}
                             </tbody>
                         </table>
                     </div>

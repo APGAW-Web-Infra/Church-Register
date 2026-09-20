@@ -18,6 +18,7 @@ use App\Models\ChurchWorkersMeeting;
 use App\Models\ChurchInvitation;
 use App\Models\AttendanceRecord;
 use App\Models\Event;
+use App\Models\MemberProfile;
 use Illuminate\Support\Collection;
 use App\Models\SmallGroup;
 use App\Models\SmallGroupAttendance;
@@ -290,15 +291,18 @@ class ChurchOperationsController extends Controller
             'prayer_requests_count' => ['nullable', 'integer', 'min:0'],
         ]);
 
+        $reportDate = Carbon::parse($validated['report_date']);
+        $liveSummary = $this->liveAttendanceReportSummary($validated['period_type'], $reportDate);
+
         ChurchReport::create([
             'period_type' => $validated['period_type'],
             'title' => $validated['title'],
             'report_date' => $validated['report_date'],
-            'summary' => $validated['summary'] ?? null,
-            'attendance_count' => $validated['attendance_count'] ?? 0,
-            'first_timers_count' => $validated['first_timers_count'] ?? 0,
-            'new_members_count' => $validated['new_members_count'] ?? 0,
-            'prayer_requests_count' => $validated['prayer_requests_count'] ?? 0,
+            'summary' => $validated['summary'] ?? $this->buildReportSummary($validated['period_type'], $reportDate, $liveSummary),
+            'attendance_count' => $validated['attendance_count'] ?? $liveSummary['attendance_count'],
+            'first_timers_count' => $validated['first_timers_count'] ?? $liveSummary['first_timers_count'],
+            'new_members_count' => $validated['new_members_count'] ?? $liveSummary['new_members_count'],
+            'prayer_requests_count' => $validated['prayer_requests_count'] ?? $liveSummary['prayer_requests_count'],
         ]);
 
         return redirect()->route('church-admin.reports')->with('success', 'Church report saved successfully.');
@@ -492,6 +496,54 @@ class ChurchOperationsController extends Controller
         $prayerRequest->update(['status' => $validated['status']]);
 
         return redirect()->route('church-admin.prayer-requests')->with('success', 'Prayer request status updated successfully.');
+    }
+
+    private function liveAttendanceReportSummary(string $periodType, Carbon $reportDate): array
+    {
+        [$start, $end] = $this->reportDateRange($periodType, $reportDate);
+
+        $qualifyingRecords = AttendanceRecord::query()
+            ->whereIn('status', ['present', 'late'])
+            ->whereRaw('DATE(service_date) >= ?', [$start->toDateString()])
+            ->whereRaw('DATE(service_date) <= ?', [$end->toDateString()])
+            ->get();
+
+        $newMembersCount = MemberProfile::query()
+            ->whereBetween('created_at', [$start->startOfDay()->toDateTimeString(), $end->endOfDay()->toDateTimeString()])
+            ->count();
+
+        $prayerRequestsCount = ChurchPrayerRequest::query()
+            ->whereBetween('created_at', [$start->startOfDay()->toDateTimeString(), $end->endOfDay()->toDateTimeString()])
+            ->count();
+
+        return [
+            'attendance_count' => $qualifyingRecords->count(),
+            'first_timers_count' => $qualifyingRecords->where('first_timer', true)->count(),
+            'new_members_count' => $newMembersCount,
+            'prayer_requests_count' => $prayerRequestsCount,
+        ];
+    }
+
+    private function buildReportSummary(string $periodType, Carbon $reportDate, array $liveSummary): string
+    {
+        return sprintf(
+            '%s report for %s: %d qualifying attendance records and %d first timers recorded.',
+            ucfirst($periodType),
+            $reportDate->format('F Y'),
+            $liveSummary['attendance_count'],
+            $liveSummary['first_timers_count']
+        );
+    }
+
+    private function reportDateRange(string $periodType, Carbon $reportDate): array
+    {
+        return match ($periodType) {
+            'weekly' => [$reportDate->copy()->startOfWeek(Carbon::SUNDAY), $reportDate->copy()->endOfWeek(Carbon::SUNDAY)],
+            'monthly' => [$reportDate->copy()->startOfMonth(), $reportDate->copy()->endOfMonth()],
+            'quarterly' => [$reportDate->copy()->startOfQuarter(), $reportDate->copy()->endOfQuarter()],
+            'annual' => [$reportDate->copy()->startOfYear(), $reportDate->copy()->endOfYear()],
+            default => [$reportDate->copy()->startOfDay(), $reportDate->copy()->endOfDay()],
+        };
     }
 
     private function parseList(string $value): array

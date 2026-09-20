@@ -99,6 +99,63 @@ class ChurchAdminDashboardTest extends TestCase
         );
     }
 
+    public function test_weekly_report_uses_live_first_timer_totals_from_attendance_records(): void
+    {
+        $user = $this->admin();
+        $profile = $user->memberProfile()->create([
+            'first_name' => 'Weekly',
+            'last_name' => 'Visitor',
+            'membership_status' => 'first_timer',
+            'is_active' => true,
+        ]);
+
+        AttendanceRecord::create([
+            'user_id' => $user->id,
+            'member_profile_id' => $profile->id,
+            'service_type' => 'main_service',
+            'service_date' => '2026-09-06',
+            'status' => 'present',
+            'first_timer' => true,
+            'recorded_by' => $user->id,
+        ]);
+
+        AttendanceRecord::create([
+            'user_id' => $user->id,
+            'member_profile_id' => $profile->id,
+            'service_type' => 'main_service',
+            'service_date' => '2026-09-08',
+            'status' => 'late',
+            'first_timer' => false,
+            'recorded_by' => $user->id,
+        ]);
+
+        AttendanceRecord::create([
+            'user_id' => $user->id,
+            'member_profile_id' => $profile->id,
+            'service_type' => 'main_service',
+            'service_date' => '2026-09-13',
+            'status' => 'absent',
+            'first_timer' => true,
+            'recorded_by' => $user->id,
+        ]);
+
+        $this->actingAs($user)
+            ->post('/church-admin/reports', [
+                'period_type' => 'weekly',
+                'title' => 'First timer report',
+                'report_date' => '2026-09-08',
+                'summary' => 'The first timer count is computed from attendance records.',
+            ])
+            ->assertRedirect('/church-admin/reports');
+
+        $this->assertDatabaseHas('church_reports', [
+            'period_type' => 'weekly',
+            'title' => 'First timer report',
+            'attendance_count' => 2,
+            'first_timers_count' => 1,
+        ]);
+    }
+
     public function test_church_admin_dashboard_reports_member_lifecycle_breakdown(): void
     {
         $user = $this->admin();
