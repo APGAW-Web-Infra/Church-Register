@@ -39,7 +39,7 @@ class GrantAdminPrivileges extends Command
         }
 
         // Find user
-        $user = User::where('email', $email)->first();
+        $user = User::query()->where('email', $email)->first();
 
         if (!$user) {
             $this->error("User with email '{$email}' not found.");

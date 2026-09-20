@@ -8,6 +8,7 @@ use App\Models\ChurchInvitation;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 use Spatie\Permission\Models\Role;
@@ -332,7 +333,7 @@ class ChurchAdminController extends Controller
         }
 
         $user->memberProfile?->delete();
-        $user->delete();
+        DB::table('users')->where('id', $user->id)->delete();
 
         return redirect()->route('church-admin.users')->with('success', 'User profile deleted successfully.');
     }
