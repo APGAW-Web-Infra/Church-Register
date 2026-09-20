@@ -342,9 +342,28 @@ class ChurchOperationsController extends Controller
             $scorecardsQuery->where('period_type', $periodType);
         }
 
+        $analytics = $this->reportAnalytics($reports, $scorecardsQuery->get(), $periodType);
+        $liveReport = null;
+
+        if ($periodType === 'annual' && $reports->isEmpty()) {
+            $liveReport = [
+                'id' => 0,
+                'period_type' => 'annual',
+                'title' => 'Live annual summary (' . now()->year . ')',
+                'report_date' => now()->toDateString(),
+                'summary' => 'Live summary generated from qualifying attendance records for the current calendar year.',
+                'attendance_count' => $analytics['totalAttendance'],
+                'first_timers_count' => $analytics['totalFirstTimers'],
+                'new_members_count' => $analytics['totalNewMembers'],
+                'prayer_requests_count' => $analytics['totalPrayerRequests'],
+                'is_live' => true,
+            ];
+        }
+
         return Inertia::render('Church/ReportsDashboard', [
             'reports' => $reports,
-            'analytics' => $this->reportAnalytics($reports, $scorecardsQuery->get(), $periodType),
+            'analytics' => $analytics,
+            'liveReport' => $liveReport,
             'periodType' => $periodType,
             'analyticsLabels' => [
                 'attendanceTrend' => 'Attendance trend',

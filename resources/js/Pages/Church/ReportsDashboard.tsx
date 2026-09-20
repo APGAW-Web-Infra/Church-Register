@@ -12,6 +12,7 @@ interface Report {
     first_timers_count: number;
     new_members_count: number;
     prayer_requests_count: number;
+    is_live?: boolean;
 }
 
 interface ReportAnalytics {
@@ -55,12 +56,14 @@ interface ReportAnalytics {
 
 export default function ReportsDashboard({
     reports,
+    liveReport,
     flash,
     analyticsLabels,
     periodType = 'all',
     analytics: serverAnalytics,
 }: {
     reports: Report[];
+    liveReport?: Report | null;
     flash?: { success?: string };
     periodType?: string;
     analyticsLabels?: {
@@ -300,6 +303,8 @@ export default function ReportsDashboard({
 
         pdf.save('apga-worldwide-church-report.pdf');
     };
+
+    const tableReports = reports.length > 0 ? reports : (liveReport ? [liveReport] : []);
 
     return (
         <AuthenticatedLayout>
@@ -563,10 +568,13 @@ export default function ReportsDashboard({
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-red-50 bg-white">
-                            {reports.length > 0 ? reports.map((report) => (
+                            {tableReports.length > 0 ? tableReports.map((report) => (
                                 <tr key={report.id} className="hover:bg-red-50/40">
                                     <td className="px-4 py-3 text-sm font-medium text-slate-800 capitalize">{report.period_type}</td>
-                                    <td className="px-4 py-3 text-sm text-slate-600">{report.title}</td>
+                                    <td className="px-4 py-3 text-sm text-slate-600">
+                                        {report.title}
+                                        {report.is_live && <span className="ml-2 rounded-full bg-emerald-50 px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-emerald-700">Live</span>}
+                                    </td>
                                     <td className="px-4 py-3 text-sm text-slate-600">{report.report_date}</td>
                                     <td className="px-4 py-3 text-sm text-slate-600">{report.attendance_count}</td>
                                     <td className="px-4 py-3 text-sm text-slate-600">{report.first_timers_count}</td>
