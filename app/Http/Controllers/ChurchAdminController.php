@@ -10,6 +10,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
+use Spatie\Permission\Models\Role;
 
 class ChurchAdminController extends Controller
 {
@@ -219,6 +220,138 @@ class ChurchAdminController extends Controller
             ],
             'user' => $request->user(),
         ]);
+    }
+
+    public function users(Request $request)
+    {
+        $query = User::query()->with('roles')->orderByDesc('created_at');
+
+        if ($request->filled('search')) {
+            $search = trim($request->input('search'));
+            $query->where(function ($userQuery) use ($search) {
+                $userQuery->where('name', 'like', "%{$search}%")
+                    ->orWhere('email', 'like', "%{$search}%")
+                    ->orWhere('phone', 'like', "%{$search}%")
+                    ->orWhere('state', 'like', "%{$search}%")
+                    ->orWhere('sector', 'like', "%{$search}%");
+            });
+        }
+
+        if ($request->filled('role')) {
+            $roleName = $request->input('role');
+            $query->whereHas('roles', fn ($roleQuery) => $roleQuery->where('name', $roleName));
+        }
+
+        $users = $query->get()->map(function (User $user) {
+            $member = $user->memberProfile;
+            $profileName = $member
+                ? trim(($member->first_name ?? '') . ' ' . ($member->last_name ?? ''))
+                : $user->name;
+
+            return [
+                'id' => $user->id,
+                'name' => $profileName ?: $user->name,
+                'email' => $user->email,
+                'phone' => $user->phone,
+                'state' => $user->state,
+                'sector' => $user->sector,
+                'registration_status' => $user->registration_status,
+                'is_verified' => !empty($user->email_verified_at),
+                'roles' => $user->roles->pluck('name')->values()->all(),
+                'created_at' => $user->created_at?->format('Y-m-d'),
+                'member_profile_id' => $member?->id,
+            ];
+        })->values()->all();
+
+        return Inertia::render('Church/UserManagement', [
+            'users' => $users,
+            'roles' => ['super_admin', 'admin', 'individual'],
+            'filters' => [
+                'search' => $request->input('search'),
+                'role' => $request->input('role'),
+            ],
+            'flash' => ['success' => $request->session()->get('success')],
+        ]);
+    }
+
+    public function updateUser(Request $request, User $user)
+    {
+        $validated = $request->validate([
+            'name' => ['nullable', 'string', 'max:255'],
+            'email' => ['nullable', 'email', 'max:255', 'unique:users,email,' . $user->id],
+            'phone' => ['nullable', 'string', 'max:30'],
+            'state' => ['nullable', 'string', 'max:100'],
+            'sector' => ['nullable', 'string', 'max:100'],
+            'registration_status' => ['nullable', 'in:pending,verified,suspended,rejected'],
+            'role' => ['nullable', 'in:individual,admin,super_admin'],
+        ]);
+
+        if (isset($validated['name']) && $validated['name'] !== '') {
+            $user->name = $validated['name'];
+        }
+
+        if (isset($validated['email']) && $validated['email'] !== '') {
+            $user->email = $validated['email'];
+        }
+
+        if (array_key_exists('phone', $validated)) {
+            $user->phone = $validated['phone'];
+        }
+
+        if (array_key_exists('state', $validated)) {
+            $user->state = $validated['state'];
+        }
+
+        if (array_key_exists('sector', $validated)) {
+            $user->sector = $validated['sector'];
+        }
+
+        if (array_key_exists('registration_status', $validated)) {
+            $user->registration_status = $validated['registration_status'];
+        }
+
+        $user->save();
+
+        if (!empty($validated['role'])) {
+            Role::firstOrCreate([
+                'name' => $validated['role'],
+                'guard_name' => 'web',
+            ]);
+
+            $user->syncRoles([]);
+            $user->assignRole($validated['role']);
+        }
+
+        return redirect()->route('church-admin.users')->with('success', 'User details updated successfully.');
+    }
+
+    public function deleteUser(Request $request, User $user)
+    {
+        if ($user->id === $request->user()->id) {
+            return redirect()->route('church-admin.users')->with('error', 'You cannot delete your own account.');
+        }
+
+        $user->memberProfile?->delete();
+        $user->delete();
+
+        return redirect()->route('church-admin.users')->with('success', 'User profile deleted successfully.');
+    }
+
+    public function promoteUser(Request $request, User $user)
+    {
+        $validated = $request->validate([
+            'role' => ['required', 'in:admin,super_admin,individual'],
+        ]);
+
+        Role::firstOrCreate([
+            'name' => $validated['role'],
+            'guard_name' => 'web',
+        ]);
+
+        $user->syncRoles([]);
+        $user->assignRole($validated['role']);
+
+        return redirect()->route('church-admin.users')->with('success', ucfirst($validated['role']) . ' privileges granted successfully.');
     }
 
     public function members(Request $request)

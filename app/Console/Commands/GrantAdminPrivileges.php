@@ -6,6 +6,7 @@ use App\Models\User;
 use App\Enum\RolesEnum;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
+use Spatie\Permission\Models\Role;
 
 class GrantAdminPrivileges extends Command
 {
@@ -48,6 +49,12 @@ class GrantAdminPrivileges extends Command
         try {
             // Start transaction
             DB::beginTransaction();
+
+            // Ensure the role exists before assigning it.
+            Role::firstOrCreate([
+                'name' => $role,
+                'guard_name' => 'web',
+            ]);
 
             // Remove all previous roles
             $user->syncRoles([]);

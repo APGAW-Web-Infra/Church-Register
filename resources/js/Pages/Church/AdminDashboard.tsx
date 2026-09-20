@@ -125,6 +125,7 @@ export default function AdminDashboard({ churchData }: { churchData: ChurchData 
 
     const quickActions = [
         { label: 'Service register', description: 'Track Sunday attendance', href: route('church-admin.service-register'), tone: 'from-red-600 to-rose-500' },
+        { label: 'User management', description: 'Manage staff and admins', href: route('church-admin.users'), tone: 'from-slate-700 to-slate-500' },
         { label: 'Reports', description: 'Leadership analytics', href: route('church-admin.reports'), tone: 'from-orange-500 to-amber-400' },
         { label: 'Scorecards', description: 'Invitation and conversion stats', href: route('church-admin.scorecards'), tone: 'from-violet-600 to-indigo-500' },
         { label: 'Absentees', description: 'Follow-up and recovery', href: route('church-admin.absentees'), tone: 'from-slate-700 to-slate-500' },

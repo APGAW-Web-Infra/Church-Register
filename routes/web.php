@@ -119,6 +119,10 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/church-admin', [ChurchAdminController::class, 'index'])->name('church-admin.index');
         Route::get('/church-admin/members', [ChurchAdminController::class, 'members'])->name('church-admin.members');
         Route::post('/church-admin/members', [ChurchAdminController::class, 'storeMember'])->name('church-admin.members.store');
+        Route::get('/church-admin/users', [ChurchAdminController::class, 'users'])->name('church-admin.users');
+        Route::patch('/church-admin/users/{user}', [ChurchAdminController::class, 'updateUser'])->name('church-admin.users.update');
+        Route::delete('/church-admin/users/{user}', [ChurchAdminController::class, 'deleteUser'])->name('church-admin.users.delete');
+        Route::post('/church-admin/users/{user}/promote', [ChurchAdminController::class, 'promoteUser'])->name('church-admin.users.promote');
         Route::get('/church-admin/attendance', function () {
             return redirect()->route('church-admin.service-register', ['month' => now()->format('Y-m')]);
         })->name('church-admin.attendance');

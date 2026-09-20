@@ -16,6 +16,7 @@ The platform now includes a working church operations foundation spanning public
 — Church member profiles with profile-photo upload, profile-photo replacement, and admin directory photo display — Work Done: 96%
 — Birthday and member celebration visibility support through administrative records and public/member-facing content — Work Done: 92%
 — Member directory, active/inactive tracking, and onboarding/referral intelligence through the admin dashboard — Work Done: 96%
+— Admin user management, role promotion, profile editing, and account deletion controls for church administrators — Work Done: 96%
 — Ministry, leadership, and unit-leader profile management — Work Done: 94%
 — Workers meetings, events, media board, announcements, newsletters, and outreach/communications tools — Work Done: 93%
 — Public announcements board, prayer requests, contact form, and member messaging workflows — Work Done: 95%
@@ -129,7 +130,8 @@ Youth Unit/Ministry | Men’s Movement | Good Women’s Movement — Work Done: 
 - Work Done: 98% overall
 
 #### 2.2 Admin Systems
-- Member profiles, profile photos, attendance registers, ministries, church workers meetings, newsletter subscription, campaign support, and report dashboard analytics are implemented — Work Done: 96%
+- Member profiles, profile photos, attendance registers, ministries, church workers meetings, newsletter subscription, campaign support, admin user management, and report dashboard analytics are implemented — Work Done: 96%
+- Searchable user administration, profile editing, deletion safeguards, and admin promotion workflows are now available from the dedicated user-management section — Work Done: 96%
 - Work Done: 96% overall
 
 ### 3. Community and Training Delivery
@@ -174,9 +176,11 @@ Youth Unit/Ministry | Men’s Movement | Good Women’s Movement — Work Done: 
 ## SPECIAL INFO / CURRENT SYSTEM NOTES
 ### Service register is now the canonical attendance workflow
 - The old /church-admin/attendance route is redirected to /church-admin/service-register to preserve compatibility but keep one source of truth.
-- The register is alphabetical and searchable by name or referral code for large member lists.
+- The register is alphabetical and searchable by name for large member lists.
 - The admin no longer needs to manually type service data; the system applies the selected month and service type automatically.
 - First-timer marks are saved with each attendance record and feed reports and dashboards dynamically.
+- A dedicated /church-admin/users workflow now supports user search, editing, role promotion, and profile deletion as a separate admin management area.
+- Verified build status: npm run build completes successfully on the current project state.
 
 ### Completed functional improvements
 - Dynamic service-type support is completed and stable.
@@ -184,6 +188,7 @@ Youth Unit/Ministry | Men’s Movement | Good Women’s Movement — Work Done: 
 - Weekly and monthly reports are connected to the shared attendance records.
 - The dashboard cards pull from the live source rather than stale or duplicated values.
 - The register remains optimized so administrators can work quickly even with a larger church database.
+- User management now includes promotion to admin/super_admin, profile updates, and secured deletion for non-self accounts.
 
 ### Current target priorities
 - Final production hardening and security review.

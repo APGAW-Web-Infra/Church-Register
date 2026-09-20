@@ -335,6 +335,28 @@ class ChurchAdminDashboardTest extends TestCase
         );
     }
 
+    public function test_church_admin_can_manage_users_and_promote_them_to_admin(): void
+    {
+        $admin = $this->admin();
+        $targetUser = User::factory()->create([
+            'name' => 'New Admin Candidate',
+            'email' => 'candidate@example.com',
+        ]);
+
+        $this->actingAs($admin)
+            ->get('/church-admin/users')
+            ->assertOk();
+
+        $this->actingAs($admin)
+            ->post('/church-admin/users/' . $targetUser->id . '/promote', [
+                'role' => 'admin',
+            ])
+            ->assertRedirect('/church-admin/users');
+
+        $targetUser->refresh();
+        $this->assertTrue($targetUser->hasRole('admin'));
+    }
+
     public function test_dashboard_summary_cards_are_driven_by_real_church_data(): void
     {
         $user = $this->admin();
