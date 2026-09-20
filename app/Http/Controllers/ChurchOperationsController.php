@@ -705,10 +705,19 @@ class ChurchOperationsController extends Controller
         $validated = $request->validate([
             'period' => ['nullable', 'in:week,month'],
             'date' => ['nullable', 'date'],
+            'service_type' => ['nullable', 'in:main_service,sunday_school,workers_meeting,prayer_meeting'],
         ]);
         $period = $validated['period'] ?? 'week';
+        $serviceType = $validated['service_type'] ?? 'main_service';
+        $serviceLabels = [
+            'main_service' => 'Main Service',
+            'sunday_school' => 'Sunday School',
+            'workers_meeting' => 'Workers Meeting',
+            'prayer_meeting' => 'Prayer Meeting',
+        ];
+        $serviceLabel = $serviceLabels[$serviceType];
         $latestDate = AttendanceRecord::query()
-            ->where('service_type', 'main_service')
+            ->where('service_type', $serviceType)
             ->whereIn('status', ['absent', 'excused'])
             ->orderByDesc('service_date')
             ->value('service_date');
@@ -718,7 +727,7 @@ class ChurchOperationsController extends Controller
             : [$selectedDate->copy()->startOfWeek(Carbon::SUNDAY), $selectedDate->copy()->endOfWeek(Carbon::SATURDAY)];
 
         $periodDates = AttendanceRecord::query()
-            ->where('service_type', 'main_service')
+            ->where('service_type', $serviceType)
             ->whereIn('status', ['absent', 'excused'])
             ->whereBetween('service_date', [$periodStart->toDateString(), $periodEnd->toDateString()])
             ->selectRaw('DISTINCT DATE(service_date) as service_date')
@@ -729,7 +738,7 @@ class ChurchOperationsController extends Controller
 
         foreach ($periodDates as $serviceDate) {
             $records = AttendanceRecord::query()
-                ->where('service_type', 'main_service')
+                ->where('service_type', $serviceType)
                 ->whereDate('service_date', $serviceDate)
                 ->whereIn('status', ['absent', 'excused'])
                 ->with('memberProfile')
@@ -758,7 +767,7 @@ class ChurchOperationsController extends Controller
         }
 
         $savedWeeks = AttendanceRecord::query()
-            ->where('service_type', 'main_service')
+            ->where('service_type', $serviceType)
             ->whereIn('status', ['absent', 'excused'])
             ->get(['service_date', 'status'])
             ->groupBy(fn ($record) => Carbon::parse($record->service_date)->startOfWeek(Carbon::SUNDAY)->toDateString())
@@ -780,6 +789,9 @@ class ChurchOperationsController extends Controller
         return Inertia::render('Church/AbsenteeBoard', [
             'absentees' => $absentees->sortByDesc('service_date')->values()->all(),
             'period' => $period,
+            'serviceType' => $serviceType,
+            'serviceLabel' => $serviceLabel,
+            'serviceOptions' => collect($serviceLabels)->map(fn ($label, $value) => ['value' => $value, 'label' => $label])->values()->all(),
             'selectedDate' => $selectedDate->toDateString(),
             'periodLabel' => $period === 'month'
                 ? $selectedDate->format('F Y')

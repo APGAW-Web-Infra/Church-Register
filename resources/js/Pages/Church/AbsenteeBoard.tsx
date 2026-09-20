@@ -19,7 +19,12 @@ interface SavedWeek {
     excused: number;
 }
 
-export default function AbsenteeBoard({ absentees, flash, period = 'week', selectedDate, periodLabel, savedWeeks = [] }: { absentees: AbsenteeRecord[]; flash?: { success?: string }; period?: 'week' | 'month'; selectedDate: string; periodLabel: string; savedWeeks?: SavedWeek[] }) {
+interface ServiceOption {
+    value: string;
+    label: string;
+}
+
+export default function AbsenteeBoard({ absentees, flash, period = 'week', selectedDate, periodLabel, serviceType = 'main_service', serviceLabel = 'Main Service', serviceOptions = [], savedWeeks = [] }: { absentees: AbsenteeRecord[]; flash?: { success?: string }; period?: 'week' | 'month'; selectedDate: string; periodLabel: string; serviceType?: string; serviceLabel?: string; serviceOptions?: ServiceOption[]; savedWeeks?: SavedWeek[] }) {
     const { data, setData, post, processing } = useForm({
         member_name: '',
         reason: '',
@@ -33,9 +38,9 @@ export default function AbsenteeBoard({ absentees, flash, period = 'week', selec
         post('/church-admin/absentees');
     };
 
-    const changeScope = (nextPeriod: 'week' | 'month', nextDate = selectedDate) => {
+    const changeScope = (nextPeriod: 'week' | 'month', nextDate = selectedDate, nextServiceType = serviceType) => {
         const normalizedDate = nextPeriod === 'month' && nextDate.length === 7 ? `${nextDate}-01` : nextDate;
-        router.get('/church-admin/absentees', { period: nextPeriod, date: normalizedDate }, { preserveState: true, replace: true });
+        router.get('/church-admin/absentees', { period: nextPeriod, date: normalizedDate, service_type: nextServiceType }, { preserveState: true, replace: true });
     };
 
     const moveWeek = (offset: number) => {
@@ -63,7 +68,7 @@ export default function AbsenteeBoard({ absentees, flash, period = 'week', selec
             pdf.text('APGA Worldwide', margin, 28);
             pdf.setFont('helvetica', 'normal');
             pdf.setFontSize(11);
-            pdf.text('Church Leadership Absentee Report', margin, 46);
+            pdf.text(`${serviceLabel} Absentee Report`, margin, 46);
 
             pdf.setTextColor(210, 210, 210);
             pdf.setFont('helvetica', 'normal');
@@ -93,7 +98,7 @@ export default function AbsenteeBoard({ absentees, flash, period = 'week', selec
             pdf.setFont('helvetica', 'normal');
             pdf.setFontSize(11);
             pdf.text(`Generated records: ${totalAbsent}`, margin, 122);
-            pdf.text(`Service visibility period: ${serviceDate}`, margin, 140);
+            pdf.text(`Service: ${serviceLabel} | Visibility period: ${periodLabel}`, margin, 140);
 
             pdf.setFillColor(245, 247, 250);
             pdf.roundedRect(margin, 160, innerWidth, 82, 8, 8, 'F');
@@ -187,6 +192,12 @@ export default function AbsenteeBoard({ absentees, flash, period = 'week', selec
 
                 <div className="mb-6 flex flex-wrap items-end gap-3 rounded-2xl border border-red-100 bg-white p-4 shadow-sm">
                     <label className="text-sm font-semibold text-slate-700">
+                        Service type
+                        <select value={serviceType} onChange={(event) => changeScope(period, selectedDate, event.target.value)} className="mt-1 block rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm">
+                            {serviceOptions.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
+                        </select>
+                    </label>
+                    <label className="text-sm font-semibold text-slate-700">
                         View period
                         <select value={period} onChange={(event) => changeScope(event.target.value as 'week' | 'month')} className="mt-1 block rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm">
                             <option value="week">Week by week</option>
@@ -203,7 +214,7 @@ export default function AbsenteeBoard({ absentees, flash, period = 'week', selec
                             <button type="button" onClick={() => moveWeek(1)} className="rounded-xl border border-slate-200 px-3 py-2.5 text-sm font-semibold text-slate-700 hover:border-red-300 hover:text-red-700">Next week →</button>
                         </div>
                     )}
-                    <div className="ml-auto rounded-xl bg-red-50 px-4 py-2.5 text-sm font-semibold text-red-700">{periodLabel}</div>
+                    <div className="ml-auto rounded-xl bg-red-50 px-4 py-2.5 text-sm font-semibold text-red-700">{serviceLabel} · {periodLabel}</div>
                 </div>
 
                 {flash?.success && (
@@ -256,8 +267,8 @@ export default function AbsenteeBoard({ absentees, flash, period = 'week', selec
                 </section>
 
                 <div className="mb-8 rounded-3xl border border-red-100 bg-white p-5 shadow-sm">
-                    <h2 className="mb-2 text-lg font-semibold text-slate-900">Auto-generated absentee list</h2>
-                    <p className="text-sm text-slate-600">Absentees are derived from the Sunday service register. If a member is not marked present, late, or excused for a service date, the record is automatically treated as absent.</p>
+                    <h2 className="mb-2 text-lg font-semibold text-slate-900">Auto-generated {serviceLabel} absentee list</h2>
+                    <p className="text-sm text-slate-600">Absentees are derived from the central service register. If a member is not marked present, late, or excused for a {serviceLabel.toLowerCase()} date, the record is automatically treated as absent.</p>
                 </div>
 
                 {period === 'week' && savedWeeks.length > 0 && (
