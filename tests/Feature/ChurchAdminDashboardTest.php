@@ -641,7 +641,7 @@ class ChurchAdminDashboardTest extends TestCase
                 'notes' => 'Joined the morning worship service.',
             ]);
 
-        $response->assertRedirect('/church-admin/attendance');
+        $response->assertRedirect('/church-admin/service-register?month=2026-09&service_type=main_service');
         $this->assertDatabaseHas('attendance_records', [
             'member_profile_id' => $profile->id,
             'service_type' => 'main_service',
@@ -649,11 +649,8 @@ class ChurchAdminDashboardTest extends TestCase
         ]);
 
         $this->actingAs($user)
-            ->get('/church-admin/attendance')
-            ->assertInertia(fn ($page) => $page
-                ->where('attendanceStats.latest_service_date', '2026-09-01')
-                ->where('attendanceStats.latest_service_total', 1)
-            );
+            ->get('/church-admin/service-register?month=2026-09')
+            ->assertOk();
     }
 
     public function test_church_admin_attendance_rejects_unknown_service_types(): void
@@ -698,7 +695,7 @@ class ChurchAdminDashboardTest extends TestCase
                 'service_type' => 'main_service',
                 'service_date' => '2026-09-06',
                 'status' => $status,
-            ])->assertRedirect('/church-admin/attendance');
+            ])->assertRedirect('/church-admin/service-register?month=2026-09&service_type=main_service');
         }
 
         $this->assertDatabaseCount('attendance_records', 1);
@@ -789,6 +786,92 @@ class ChurchAdminDashboardTest extends TestCase
             ->whereDate('service_date', '2026-09-06')
             ->where('status', 'late')
             ->exists());
+    }
+
+    public function test_service_register_supports_dynamic_service_types(): void
+    {
+        $admin = $this->admin();
+        $member = User::factory()->create();
+        $profile = $member->memberProfile()->create([
+            'first_name' => 'Dynamic',
+            'last_name' => 'Service',
+            'membership_status' => 'member',
+            'is_active' => true,
+        ]);
+
+        $this->actingAs($admin)
+            ->post('/church-admin/service-register/attendance', [
+                'member_profile_id' => $profile->id,
+                'service_type' => 'sunday_school',
+                'service_date' => '2026-09-06',
+                'status' => 'present',
+            ])
+            ->assertRedirect('/church-admin/service-register?month=2026-09&service_type=sunday_school');
+
+        $this->assertDatabaseHas('attendance_records', [
+            'member_profile_id' => $profile->id,
+            'service_type' => 'sunday_school',
+            'status' => 'present',
+        ]);
+
+        $this->assertDatabaseHas('attendance_records', [
+            'member_profile_id' => $profile->id,
+            'service_type' => 'sunday_school',
+            'status' => 'present',
+        ]);
+
+        $this->assertTrue(AttendanceRecord::query()
+            ->where('member_profile_id', $profile->id)
+            ->where('service_type', 'sunday_school')
+            ->whereDate('service_date', '2026-09-06')
+            ->where('status', 'present')
+            ->exists());
+
+        $this->actingAs($admin)
+            ->get('/church-admin/service-register?month=2026-09&service_type=sunday_school')
+            ->assertOk()
+            ->assertInertia(fn ($page) => $page
+                ->where('serviceType', 'sunday_school')
+                ->has('serviceDates', 4)
+                ->where('rows.0.weeks.0.status', 'present')
+            );
+    }
+
+    public function test_service_register_tracks_first_timer_status_for_each_service_date(): void
+    {
+        $admin = $this->admin();
+        $member = User::factory()->create();
+        $profile = $member->memberProfile()->create([
+            'first_name' => 'First',
+            'last_name' => 'Timer',
+            'membership_status' => 'first_timer',
+            'is_active' => true,
+        ]);
+
+        $this->actingAs($admin)
+            ->post('/church-admin/service-register/attendance', [
+                'member_profile_id' => $profile->id,
+                'service_type' => 'main_service',
+                'service_date' => '2026-09-06',
+                'status' => 'present',
+                'first_timer' => true,
+            ])
+            ->assertRedirect('/church-admin/service-register?month=2026-09');
+
+        $this->assertTrue(AttendanceRecord::query()
+            ->where('member_profile_id', $profile->id)
+            ->where('service_type', 'main_service')
+            ->whereDate('service_date', '2026-09-06')
+            ->where('status', 'present')
+            ->where('first_timer', true)
+            ->exists());
+
+        $this->actingAs($admin)
+            ->get('/church-admin/service-register?month=2026-09')
+            ->assertOk()
+            ->assertInertia(fn ($page) => $page
+                ->where('rows.0.weeks.0.first_timer', true)
+            );
     }
 
     public function test_service_register_attendance_validates_a_qualifying_invitation(): void

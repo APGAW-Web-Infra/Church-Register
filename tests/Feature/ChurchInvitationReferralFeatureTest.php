@@ -159,7 +159,7 @@ class ChurchInvitationReferralFeatureTest extends TestCase
             'service_date' => '2026-09-06',
             'status' => 'present',
             'first_timer' => true,
-        ])->assertRedirect('/church-admin/attendance');
+        ])->assertRedirect('/church-admin/service-register?month=2026-09&service_type=main_service');
 
         $this->assertNotNull($invitation->fresh()->validated_at);
         $this->assertSame(1, $admin->sentChurchInvitations()->whereNotNull('validated_at')->count());

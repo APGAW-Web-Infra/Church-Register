@@ -90,6 +90,25 @@ Youth Unit/Ministry | Men’s Movement | Good Women’s Movement
 - Sunday School, Bible Study, APGAW Believer’s Foundation Class, and APGAW School of Ministry pathways
 - Work Done: 75%
 
+## DYNAMIC SERVICE REGISTER FLOW
+### 1. Service-type-aware attendance capture
+- The admin service register now uses the same attendance logic as the attendance board and supports multiple church service types dynamically.
+- The service register accepts the active service context before attendance entries are recorded, with no manual data entry from the admin for the date or service type.
+- Valid service types are: Main Service, Sunday School, Workers Meeting, and Prayer Meeting.
+- The selected service type drives the register grid and the saved attendance records so each service remains isolated but still feeds the unified church database.
+- The attendance code preserves automation by auto-generating absent records for unmarked members and integrating the absentee follow-up workflow.
+
+### 2. Dynamic dates and schedule flexibility
+- Main service and Sunday School dates follow the calendar month’s Sunday schedule.
+- Other service types can be stored as dynamic dates that shift around the month based on actual service scheduling and program calendars.
+- If a service type has no saved dates for a selected month, the system falls back to a sensible default date pattern while still allowing admin entries to be associated with the chosen service type.
+- The register remains fully automatic: the admin only chooses the month and service category, then marks P/L/A/E for each active member.
+
+### 3. Data and reporting continuity
+- Every attendance entry is still saved to the shared attendance_records database, which keeps monthly registers, dashboards, and reports connected.
+- Present and late attendance continues to qualify for first-timer validation, invitation validation, and report metrics.
+- The system keeps church reports intelligent by consolidating all service types into the same data source without hard-coding Sunday-only logic.
+
 ## WHAT HAS BEEN ACHIEVED
 ### 1. Automated Reporting Foundation
 #### 1.1 report-connected Attendance and Register

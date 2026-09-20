@@ -303,60 +303,20 @@ class ChurchAdminController extends Controller
 
     public function attendance(Request $request)
     {
-        $latestServiceDate = AttendanceRecord::max('service_date');
-        $latestServiceDateOnly = $latestServiceDate ? Carbon::parse($latestServiceDate)->format('Y-m-d') : null;
-        $attendanceStats = [
-            'total' => AttendanceRecord::count(),
-            'present_or_late' => AttendanceRecord::whereIn('status', ['present', 'late'])->count(),
-            'first_timers' => AttendanceRecord::where('first_timer', true)->whereIn('status', ['present', 'late'])->count(),
-            'sunday_school' => AttendanceRecord::where('service_type', 'sunday_school')->whereIn('status', ['present', 'late'])->count(),
-            'main_service' => AttendanceRecord::where('service_type', 'main_service')->whereIn('status', ['present', 'late'])->count(),
-            'latest_service_date' => $latestServiceDateOnly,
-            'latest_service_total' => $latestServiceDateOnly
-                ? AttendanceRecord::whereDate('service_date', $latestServiceDateOnly)->whereIn('status', ['present', 'late'])->count()
-                : 0,
-        ];
-        $records = AttendanceRecord::with(['user', 'memberProfile'])
-            ->orderByDesc('service_date')
-            ->limit(20)
-            ->get()
-            ->map(function ($record) {
-                return [
-                    'id' => $record->id,
-                    'member' => $record->memberProfile ? trim(($record->memberProfile->first_name ?? '') . ' ' . ($record->memberProfile->last_name ?? '')) : ($record->user?->name ?? 'Unknown'),
-                    'service_type' => $record->service_type,
-                    'status' => $record->status,
-                    'first_timer' => $record->first_timer,
-                    'service_date' => $record->service_date->format('Y-m-d'),
-                ];
-            });
-
-        $members = MemberProfile::query()
-            ->select(['id', 'first_name', 'last_name'])
-            ->orderBy('first_name')
-            ->get()
-            ->map(fn ($member) => [
-                'id' => $member->id,
-                'name' => trim(($member->first_name ?? '') . ' ' . ($member->last_name ?? '')) ?: 'Unknown member',
-            ]);
-
-        return Inertia::render('Church/AttendanceBoard', [
-            'attendance' => $records,
-            'attendanceStats' => $attendanceStats,
-            'members' => $members,
-            'flash' => [
-                'success' => $request->session()->get('success'),
-            ],
-        ]);
+        return redirect()->route('church-admin.service-register', ['month' => now()->format('Y-m')]);
     }
 
     public function serviceRegister(Request $request)
     {
-        $month = $request->validate([
+        $validated = $request->validate([
             'month' => ['nullable', 'date_format:Y-m'],
-        ])['month'] ?? now()->format('Y-m');
+            'service_type' => ['nullable', 'in:main_service,sunday_school,workers_meeting,prayer_meeting'],
+        ]);
+
+        $month = $validated['month'] ?? now()->format('Y-m');
+        $serviceType = $validated['service_type'] ?? 'main_service';
         $selectedMonth = Carbon::createFromFormat('Y-m', $month)->startOfMonth();
-        $sundays = $this->monthSundays($selectedMonth);
+        $serviceDates = $this->serviceDatesForMonth($selectedMonth, $serviceType);
 
         $memberProfiles = MemberProfile::query()
             ->with('user:id,name,referral_code')
@@ -364,33 +324,57 @@ class ChurchAdminController extends Controller
             ->orderBy('first_name')
             ->orderBy('last_name')
             ->get();
+
         $attendance = AttendanceRecord::query()
-            ->where('service_type', 'main_service')
+            ->where('service_type', $serviceType)
             ->whereBetween('service_date', [$selectedMonth->copy()->startOfMonth(), $selectedMonth->copy()->endOfMonth()])
             ->get()
             ->keyBy(fn (AttendanceRecord $record) => $record->member_profile_id . ':' . $record->service_date->format('Y-m-d'));
 
-        $rows = $memberProfiles->map(function (MemberProfile $member) use ($sundays, $attendance) {
+        $rows = $memberProfiles->map(function (MemberProfile $member) use ($serviceDates, $attendance) {
             return [
                 'id' => $member->id,
                 'name' => trim(($member->first_name ?? '') . ' ' . ($member->last_name ?? '')) ?: ($member->user?->name ?? 'Unknown member'),
                 'referral_code' => $member->user?->referral_code,
-                'weeks' => collect($sundays)->map(function (Carbon $sunday) use ($member, $attendance) {
-                    $record = $attendance->get($member->id . ':' . $sunday->format('Y-m-d'));
+                'weeks' => collect($serviceDates)->map(function (string $serviceDate) use ($member, $attendance) {
+                    $record = $attendance->get($member->id . ':' . $serviceDate);
 
                     return [
-                        'date' => $sunday->format('Y-m-d'),
+                        'date' => $serviceDate,
                         'status' => $record?->status,
+                        'first_timer' => (bool) ($record?->first_timer ?? false),
                     ];
                 })->values()->all(),
             ];
         });
 
+        $latestServiceDate = AttendanceRecord::max('service_date');
+        $latestServiceDateOnly = $latestServiceDate ? Carbon::parse($latestServiceDate)->format('Y-m-d') : null;
+
         return Inertia::render('Church/ServiceRegister', [
             'month' => $selectedMonth->format('Y-m'),
             'monthLabel' => $selectedMonth->format('F Y'),
-            'sundays' => collect($sundays)->map(fn (Carbon $sunday) => $sunday->format('Y-m-d'))->values(),
+            'serviceType' => $serviceType,
+            'serviceTypes' => $this->serviceTypeOptions(),
+            'serviceDates' => $serviceDates,
+            'sundays' => $serviceDates,
             'rows' => $rows,
+            'attendanceStats' => [
+                'total' => AttendanceRecord::count(),
+                'present_or_late' => AttendanceRecord::whereIn('status', ['present', 'late'])->count(),
+                'first_timers' => AttendanceRecord::where('first_timer', true)->whereIn('status', ['present', 'late'])->count(),
+                'sunday_school' => AttendanceRecord::where('service_type', 'sunday_school')->whereIn('status', ['present', 'late'])->count(),
+                'main_service' => AttendanceRecord::where('service_type', 'main_service')->whereIn('status', ['present', 'late'])->count(),
+                'service_type_total' => AttendanceRecord::where('service_type', $serviceType)->whereIn('status', ['present', 'late'])->count(),
+                'latest_service_date' => $latestServiceDateOnly,
+                'latest_service_total' => $latestServiceDateOnly
+                    ? AttendanceRecord::whereDate('service_date', $latestServiceDateOnly)->whereIn('status', ['present', 'late'])->count()
+                    : 0,
+            ],
+            'members' => $memberProfiles->map(fn (MemberProfile $member) => [
+                'id' => $member->id,
+                'name' => trim(($member->first_name ?? '') . ' ' . ($member->last_name ?? '')) ?: ($member->user?->name ?? 'Unknown member'),
+            ])->values()->all(),
             'flash' => ['success' => $request->session()->get('success')],
         ]);
     }
@@ -399,27 +383,29 @@ class ChurchAdminController extends Controller
     {
         $validated = $request->validate([
             'member_profile_id' => ['required', 'exists:member_profiles,id'],
-            'month' => ['required', 'date_format:Y-m'],
-            'week' => ['required', 'integer', 'between:1,5'],
+            'service_type' => ['nullable', 'in:main_service,sunday_school,workers_meeting,prayer_meeting'],
+            'month' => ['nullable', 'date_format:Y-m'],
+            'week' => ['nullable', 'integer', 'between:1,5'],
+            'service_date' => ['nullable', 'date', 'date_format:Y-m-d'],
             'status' => ['nullable', 'in:present,late,absent,excused'],
+            'first_timer' => ['nullable', 'boolean'],
         ]);
 
-        $selectedMonth = Carbon::createFromFormat('Y-m', $validated['month'])->startOfMonth();
-        $sundays = $this->monthSundays($selectedMonth);
-        $sunday = $sundays[$validated['week'] - 1] ?? null;
-        abort_unless($sunday, 422, 'That week does not contain a Sunday service.');
+        $serviceType = $validated['service_type'] ?? 'main_service';
+        $selectedMonth = Carbon::createFromFormat('Y-m', $validated['month'] ?? now()->format('Y-m'))->startOfMonth();
+        $serviceDate = $this->resolveServiceDate($selectedMonth, $serviceType, $validated['service_date'] ?? null, $validated['week'] ?? null);
 
         $memberProfile = MemberProfile::findOrFail($validated['member_profile_id']);
         $record = AttendanceRecord::query()
             ->where('member_profile_id', $memberProfile->id)
-            ->where('service_type', 'main_service')
-            ->whereDate('service_date', $sunday->format('Y-m-d'))
+            ->where('service_type', $serviceType)
+            ->whereDate('service_date', $serviceDate)
             ->first();
 
         $attributes = [
             'user_id' => $memberProfile->user_id ?? $request->user()->id,
             'status' => $validated['status'] ?? 'present',
-            'first_timer' => false,
+            'first_timer' => (bool) ($validated['first_timer'] ?? $record?->first_timer ?? false),
             'recorded_by' => $request->user()->id,
         ];
 
@@ -428,16 +414,103 @@ class ChurchAdminController extends Controller
         } else {
             $record = AttendanceRecord::create([
                 'member_profile_id' => $memberProfile->id,
-                'service_type' => 'main_service',
-                'service_date' => $sunday->format('Y-m-d'),
+                'service_type' => $serviceType,
+                'service_date' => $serviceDate,
                 ...$attributes,
             ]);
         }
 
-        $this->syncServiceAbsentees($sunday->format('Y-m-d'), 'main_service', $request->user()->id);
+        $this->syncServiceAbsentees($serviceDate, $serviceType, $request->user()->id);
         $this->validateInvitationAttendance($record, $memberProfile);
 
-        return redirect()->route('church-admin.service-register', ['month' => $selectedMonth->format('Y-m')])->with('success', 'Service register updated successfully.');
+        $redirectParameters = ['month' => $selectedMonth->format('Y-m')];
+        if ($serviceType !== 'main_service') {
+            $redirectParameters['service_type'] = $serviceType;
+        }
+
+        return redirect()->route('church-admin.service-register', $redirectParameters)->with('success', 'Service register updated successfully.');
+    }
+
+    private function serviceTypeOptions(): array
+    {
+        return [
+            ['value' => 'main_service', 'label' => 'Main Service'],
+            ['value' => 'sunday_school', 'label' => 'Sunday School'],
+            ['value' => 'workers_meeting', 'label' => 'Workers Meeting'],
+            ['value' => 'prayer_meeting', 'label' => 'Prayer Meeting'],
+        ];
+    }
+
+    private function serviceDatesForMonth(Carbon $month, string $serviceType): array
+    {
+        if (in_array($serviceType, ['main_service', 'sunday_school'], true)) {
+            return collect($this->monthSundays($month))
+                ->map(fn (Carbon $date) => $date->format('Y-m-d'))
+                ->values()
+                ->all();
+        }
+
+        $dates = AttendanceRecord::query()
+            ->where('service_type', $serviceType)
+            ->whereBetween('service_date', [$month->copy()->startOfMonth(), $month->copy()->endOfMonth()])
+            ->select('service_date')
+            ->distinct()
+            ->orderBy('service_date')
+            ->pluck('service_date')
+            ->map(fn ($date) => Carbon::parse($date)->format('Y-m-d'))
+            ->all();
+
+        if ($dates !== []) {
+            return $dates;
+        }
+
+        $defaultDates = $this->fallbackServiceDatesForMonth($month, $serviceType);
+
+        return $defaultDates;
+    }
+
+    private function resolveServiceDate(Carbon $selectedMonth, string $serviceType, ?string $serviceDate, ?int $week): string
+    {
+        if ($serviceDate) {
+            return Carbon::parse($serviceDate)->format('Y-m-d');
+        }
+
+        $serviceDates = $this->serviceDatesForMonth($selectedMonth, $serviceType);
+
+        if ($week !== null) {
+            $date = $serviceDates[$week - 1] ?? null;
+            if ($date) {
+                return $date;
+            }
+        }
+
+        abort_unless($serviceDates !== [], 422, 'That service does not have a scheduled date in the selected month.');
+
+        return $serviceDates[0];
+    }
+
+    private function fallbackServiceDatesForMonth(Carbon $month, string $serviceType): array
+    {
+        $dates = [];
+        $cursor = $month->copy()->startOfMonth();
+        $end = $month->copy()->endOfMonth();
+
+        while ($cursor->lte($end)) {
+            $dayOfWeek = $cursor->dayOfWeek;
+            $shouldInclude = match ($serviceType) {
+                'workers_meeting' => in_array($dayOfWeek, [Carbon::TUESDAY, Carbon::THURSDAY, Carbon::FRIDAY], true),
+                'prayer_meeting' => in_array($dayOfWeek, [Carbon::MONDAY, Carbon::TUESDAY, Carbon::WEDNESDAY, Carbon::FRIDAY], true),
+                default => $cursor->dayOfWeek === Carbon::SUNDAY,
+            };
+
+            if ($shouldInclude) {
+                $dates[] = $cursor->format('Y-m-d');
+            }
+
+            $cursor->addDay();
+        }
+
+        return $dates;
     }
 
     private function syncServiceAbsentees(string $serviceDate, string $serviceType, int $recordedBy): void
@@ -564,7 +637,9 @@ class ChurchAdminController extends Controller
 
         $this->validateInvitationAttendance($attendance, $memberProfile);
 
-        return redirect()->route('church-admin.attendance')->with('success', 'Attendance recorded successfully.');
+        $selectedMonth = Carbon::parse($validated['service_date'])->format('Y-m');
+
+        return redirect()->route('church-admin.service-register', ['month' => $selectedMonth, 'service_type' => $validated['service_type']])->with('success', 'Attendance recorded successfully.');
     }
 
     private function validateInvitationAttendance(AttendanceRecord $attendance, MemberProfile $memberProfile): void

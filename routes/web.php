@@ -119,7 +119,9 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/church-admin', [ChurchAdminController::class, 'index'])->name('church-admin.index');
         Route::get('/church-admin/members', [ChurchAdminController::class, 'members'])->name('church-admin.members');
         Route::post('/church-admin/members', [ChurchAdminController::class, 'storeMember'])->name('church-admin.members.store');
-        Route::get('/church-admin/attendance', [ChurchAdminController::class, 'attendance'])->name('church-admin.attendance');
+        Route::get('/church-admin/attendance', function () {
+            return redirect()->route('church-admin.service-register', ['month' => now()->format('Y-m')]);
+        })->name('church-admin.attendance');
         Route::post('/church-admin/attendance', [ChurchAdminController::class, 'storeAttendance'])->name('church-admin.attendance.store');
         Route::get('/church-admin/service-register', [ChurchAdminController::class, 'serviceRegister'])->name('church-admin.service-register');
         Route::post('/church-admin/service-register/attendance', [ChurchAdminController::class, 'storeServiceRegisterAttendance'])->name('church-admin.service-register.attendance');
@@ -136,6 +138,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/church-admin/leadership', [ChurchOperationsController::class, 'leadership'])->name('church-admin.leadership');
         Route::post('/church-admin/leadership', [ChurchOperationsController::class, 'storeLeadership'])->name('church-admin.leadership.store');
         Route::get('/church-admin/reports', [ChurchOperationsController::class, 'reports'])->name('church-admin.reports');
+        Route::post('/church-admin/reports', [ChurchOperationsController::class, 'storeReport'])->name('church-admin.reports.store');
         Route::get('/church-admin/prayer-requests', [ChurchOperationsController::class, 'prayerRequests'])->name('church-admin.prayer-requests');
         Route::post('/church-admin/prayer-requests/{prayerRequest}/status', [ChurchOperationsController::class, 'updatePrayerRequestStatus'])->name('church-admin.prayer-requests.status');
         Route::get('/church-admin/scorecards', [ChurchOperationsController::class, 'scorecards'])->name('church-admin.scorecards');

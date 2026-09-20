@@ -277,6 +277,33 @@ class ChurchOperationsController extends Controller
         return redirect()->route('church-admin.leadership')->with('success', 'Leadership profile created successfully.');
     }
 
+    public function storeReport(Request $request)
+    {
+        $validated = $request->validate([
+            'period_type' => ['required', 'in:weekly,monthly,quarterly,annual'],
+            'title' => ['required', 'string', 'max:255'],
+            'report_date' => ['required', 'date'],
+            'summary' => ['nullable', 'string'],
+            'attendance_count' => ['nullable', 'integer', 'min:0'],
+            'first_timers_count' => ['nullable', 'integer', 'min:0'],
+            'new_members_count' => ['nullable', 'integer', 'min:0'],
+            'prayer_requests_count' => ['nullable', 'integer', 'min:0'],
+        ]);
+
+        ChurchReport::create([
+            'period_type' => $validated['period_type'],
+            'title' => $validated['title'],
+            'report_date' => $validated['report_date'],
+            'summary' => $validated['summary'] ?? null,
+            'attendance_count' => $validated['attendance_count'] ?? 0,
+            'first_timers_count' => $validated['first_timers_count'] ?? 0,
+            'new_members_count' => $validated['new_members_count'] ?? 0,
+            'prayer_requests_count' => $validated['prayer_requests_count'] ?? 0,
+        ]);
+
+        return redirect()->route('church-admin.reports')->with('success', 'Church report saved successfully.');
+    }
+
     public function reports(Request $request)
     {
         $periodType = $request->validate([
