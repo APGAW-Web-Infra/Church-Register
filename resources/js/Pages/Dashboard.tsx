@@ -1,5 +1,6 @@
 ﻿import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, Link, router } from '@inertiajs/react';
+import { ArrowRight } from 'lucide-react';
 import { useState } from 'react';
 
 interface User {
@@ -134,24 +135,28 @@ export default function Dashboard({
             value: (churchSummary?.attendance_total ?? 0).toLocaleString(),
             note: 'Recorded attendance entries',
             tone: 'from-red-500 to-red-600',
+            route: null,
         },
         {
             title: 'Prayer Requests',
             value: (churchSummary?.prayer_requests ?? 0).toLocaleString(),
             note: 'Open prayer needs',
             tone: 'from-rose-500 to-orange-500',
+            route: 'prayer-requests',
         },
         {
             title: 'Ministries',
             value: (churchSummary?.active_ministries ?? 0).toLocaleString(),
             note: 'Active fellowships',
             tone: 'from-amber-500 to-red-500',
+            route: 'ministries',
         },
         {
             title: 'Events',
             value: (churchSummary?.upcoming_events ?? 0).toLocaleString().padStart(2, '0'),
             note: 'Scheduled this quarter',
             tone: 'from-red-600 to-red-800',
+            route: 'events',
         },
     ];
 
@@ -243,6 +248,16 @@ export default function Dashboard({
                                 <p className="text-sm font-medium text-slate-500">{card.title}</p>
                                 <div className="mt-3 flex items-end justify-between gap-4">
                                     <span className="text-3xl font-bold text-slate-900">{card.value}</span>
+                                    {card.route && (
+                                        <Link
+                                            href={route(card.route)}
+                                            aria-label={`Open ${card.title}`}
+                                            title={`Open ${card.title}`}
+                                            className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-red-200 text-red-700 transition hover:bg-red-50 hover:text-red-800 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
+                                        >
+                                            <ArrowRight className="h-4 w-4" aria-hidden="true" />
+                                        </Link>
+                                    )}
                                 </div>
                                 <p className="mt-2 text-xs text-slate-500">{card.note}</p>
                             </div>
