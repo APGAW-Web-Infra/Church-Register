@@ -84,16 +84,8 @@ interface DashboardProps {
         next_service: string | null;
         next_service_date: string | null;
     };
-    churchLeadership: LeadershipCard[];
     churchGroups: SmallGroupCard[];
     recentChurchActivity: ChurchActivity[];
-}
-
-interface LeadershipCard {
-    name: string;
-    role?: string | null;
-    note?: string | null;
-    image?: string | null;
 }
 
 interface SmallGroupCard {
@@ -118,7 +110,6 @@ export default function Dashboard({
     upcomingEvents,
     churchSummary,
     churchHealth,
-    churchLeadership,
     churchGroups,
     recentChurchActivity,
     trainingData,
@@ -309,16 +300,16 @@ export default function Dashboard({
                         </Link>
                     </div>
 
-                    <div id="attendance" className="mt-6 grid scroll-mt-36 gap-6 xl:grid-cols-[1.3fr_0.7fr]">
-                        <div className="rounded-3xl border border-red-100 bg-white p-5 shadow-sm">
-                            <div className="mb-5 flex items-center justify-between gap-3">
+                    <div id="attendance" className="mt-5 grid scroll-mt-36 gap-4 xl:grid-cols-[1.3fr_0.7fr]">
+                        <div className="rounded-3xl border border-red-100 bg-white p-4 shadow-sm">
+                            <div className="mb-4 flex items-center justify-between gap-3">
                                 <div>
                                     <p className="text-xs font-semibold uppercase tracking-[0.25em] text-red-600">Overview</p>
                                     <h2 className="mt-2 text-xl font-bold text-slate-900">Church health at a glance</h2>
                                 </div>
                             </div>
 
-                            <div className="grid gap-4 md:grid-cols-2">
+                            <div className="grid gap-3 md:grid-cols-2">
                                 <div className="rounded-2xl border border-red-100 bg-red-50 p-4">
                                     <div className="flex items-center justify-between text-sm text-red-700">
                                         <span className="font-semibold">Attendance</span>
@@ -357,35 +348,28 @@ export default function Dashboard({
                             </div>
                         </div>
 
-                        <div className="rounded-3xl border border-red-100 bg-white p-5 shadow-sm">
-                            <p className="text-xs font-semibold uppercase tracking-[0.25em] text-red-600">Leadership</p>
-                            <h2 className="mt-2 text-xl font-bold text-slate-900">Pastoral leadership</h2>
-
+                        <div className="rounded-3xl border border-red-100 bg-white p-4 shadow-sm">
+                            <div className="flex items-center justify-between gap-3">
+                                <div>
+                                    <p className="text-xs font-semibold uppercase tracking-[0.25em] text-red-600">Calendar</p>
+                                    <h2 className="mt-2 text-xl font-bold text-slate-900">Upcoming events</h2>
+                                </div>
+                                <Link href={route('events')} className="rounded-full border border-red-200 bg-red-50 px-3 py-1.5 text-[10px] font-bold text-red-700 transition hover:bg-red-100">
+                                    View all
+                                </Link>
+                            </div>
                             <div className="mt-4 space-y-3">
-                                {churchLeadership.length > 0 ? churchLeadership.map((person) => (
-                                    <Link key={person.name} href={route('leadership')} className="block rounded-2xl border border-red-100 bg-red-50 p-3 transition hover:border-red-300 hover:bg-red-100">
-                                        <div className="flex items-start gap-3">
-                                            {person.image ? (
-                                                <img
-                                                    src={person.image}
-                                                    alt={person.name}
-                                                    className="h-12 w-12 rounded-full object-cover border border-red-200"
-                                                />
-                                            ) : (
-                                                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-red-200 text-xs font-bold text-red-700">
-                                                    {person.name.split(' ').map((part) => part[0]).slice(0, 2).join('')}
-                                                </div>
-                                            )}
-                                            <div className="min-w-0 flex-1">
-                                                <p className="font-semibold text-slate-900">{person.name}</p>
-                                                {person.role && <p className="mt-1 text-sm font-medium text-red-700">{person.role}</p>}
-                                                {person.note && <p className="mt-2 text-xs text-slate-600">{person.note}</p>}
-                                            </div>
-                                        </div>
+                                {churchEvents.length > 0 ? churchEvents.map((event) => (
+                                    <Link key={event.id} href={route('events.detail', event.id)} className="block rounded-2xl border border-slate-200 bg-slate-50 p-3 transition hover:border-red-200 hover:bg-red-50">
+                                        <p className="truncate text-sm font-semibold text-slate-900">{event.title}</p>
+                                        <p className="mt-1 text-xs text-slate-600">{event.date}{event.location ? ` · ${event.location}` : ''}</p>
                                     </Link>
-                                )) : <p className="rounded-2xl bg-red-50 p-4 text-sm text-slate-600">No leadership profiles published yet.</p>}
+                                )) : (
+                                    <p className="rounded-2xl bg-red-50 p-3 text-sm text-slate-600">No upcoming events scheduled.</p>
+                                )}
                             </div>
                         </div>
+
                     </div>
 
                     <div id="events" className="mt-6 grid scroll-mt-36 gap-4 xl:grid-cols-3">

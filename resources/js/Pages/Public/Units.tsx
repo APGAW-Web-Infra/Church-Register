@@ -73,7 +73,7 @@ export default function Units({ units = [] }: { units?: Unit[] }) {
                         })}
                     </div>
 
-                    <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+                    <div className="grid grid-cols-2 gap-6 md:grid-cols-3 xl:grid-cols-4">
                         {visibleUnits.map((unit) => (
                             <article key={unit.slug} className="rounded-3xl border border-red-800/70 bg-slate-900/85 p-7 shadow-lg shadow-red-950/20 transition duration-300 hover:-translate-y-1 hover:border-red-500/80">
                                 <div className="mb-4 h-2.5 w-20 rounded-full bg-gradient-to-r from-red-500 to-rose-400"></div>

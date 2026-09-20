@@ -5,7 +5,8 @@ export default function Leadership() {
         {
             role: 'Vice-President, APGAW',
             name: 'Evangelist (Mrs.) Esther Omobolanriwa Ilesanmi',
-            bio: 'Serving the church through prayer, evangelism, discipleship, and compassionate spiritual care.'
+            bio: 'Serving the church through prayer, evangelism, discipleship, and compassionate spiritual care.',
+            image: '/images/Firstlady.jpeg',
         },
         {
             role: 'Senior Pastor, Church Administration',
@@ -56,6 +57,22 @@ export default function Leadership() {
                     <div className="mb-16 grid grid-cols-1 gap-8 md:grid-cols-2">
                         {leaders.map((leader, index) => (
                             <div key={index} className="rounded-2xl border border-red-800/70 bg-slate-900/80 p-8 shadow-lg shadow-red-950/20">
+                                {leader.image && (
+                                    <img
+                                        src={leader.image}
+                                        alt={leader.name}
+                                        className="mx-auto mb-6 aspect-square h-auto w-full max-w-56 rounded-2xl border border-red-700 object-cover object-center"
+                                    />
+                                )}
+                                {!leader.image && (
+                                    <div
+                                        role="img"
+                                        aria-label={`Portrait placeholder for ${leader.name}`}
+                                        className="mx-auto mb-6 flex aspect-square w-full max-w-56 items-center justify-center rounded-2xl border border-dashed border-red-700 bg-gradient-to-br from-slate-800 via-slate-900 to-red-950 text-5xl font-bold tracking-[0.18em] text-red-300"
+                                    >
+                                        PM
+                                    </div>
+                                )}
                                 <div className="mb-2 text-sm font-semibold uppercase tracking-[0.2em] text-red-300">{leader.role}</div>
                                 <h3 className="mb-3 text-2xl font-bold text-white">{leader.name}</h3>
                                 <p className="text-slate-300">{leader.bio}</p>
