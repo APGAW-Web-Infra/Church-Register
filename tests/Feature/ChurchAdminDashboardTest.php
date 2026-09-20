@@ -31,6 +31,74 @@ class ChurchAdminDashboardTest extends TestCase
         $response->assertOk();
     }
 
+    public function test_church_admin_dashboard_stats_only_count_qualifying_attendance_for_today(): void
+    {
+        $user = $this->admin();
+
+        foreach ([
+            ['present', false],
+            ['late', true],
+            ['absent', true],
+            ['excused', false],
+        ] as [$status, $firstTimer]) {
+            AttendanceRecord::create([
+                'user_id' => $user->id,
+                'member_profile_id' => null,
+                'service_type' => 'main_service',
+                'service_date' => today()->format('Y-m-d'),
+                'status' => $status,
+                'first_timer' => $firstTimer,
+                'recorded_by' => $user->id,
+                'notes' => 'Dashboard stat validation',
+            ]);
+        }
+
+        $response = $this
+            ->actingAs($user)
+            ->get('/church-admin');
+
+        $response->assertOk();
+        $response->assertInertia(fn ($page) => $page
+            ->where('churchData.attendanceToday', 2)
+            ->where('churchData.firstTimersToday', 1)
+        );
+    }
+
+    public function test_church_admin_dashboard_uses_latest_service_date_for_live_cards(): void
+    {
+        $user = $this->admin();
+
+        AttendanceRecord::create([
+            'user_id' => $user->id,
+            'member_profile_id' => null,
+            'service_type' => 'main_service',
+            'service_date' => '2026-09-06',
+            'status' => 'present',
+            'first_timer' => true,
+            'recorded_by' => $user->id,
+        ]);
+
+        AttendanceRecord::create([
+            'user_id' => $user->id,
+            'member_profile_id' => null,
+            'service_type' => 'main_service',
+            'service_date' => '2026-09-06',
+            'status' => 'late',
+            'first_timer' => false,
+            'recorded_by' => $user->id,
+        ]);
+
+        $response = $this
+            ->actingAs($user)
+            ->get('/church-admin');
+
+        $response->assertOk();
+        $response->assertInertia(fn ($page) => $page
+            ->where('churchData.attendanceToday', 2)
+            ->where('churchData.firstTimersToday', 1)
+        );
+    }
+
     public function test_church_admin_dashboard_reports_member_lifecycle_breakdown(): void
     {
         $user = $this->admin();

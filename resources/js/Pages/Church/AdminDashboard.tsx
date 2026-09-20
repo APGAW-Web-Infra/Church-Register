@@ -53,6 +53,7 @@ interface ChurchData {
     totalUsers: number;
     attendanceToday: number;
     firstTimersToday: number;
+    latestServiceDate?: string | null;
     serviceName: string;
     memberLifecycle?: MemberLifecycle;
     referralConversion?: ConversionSummary;
@@ -84,11 +85,13 @@ export default function AdminDashboard({ churchData }: { churchData: ChurchData 
         rate: 0,
     };
 
+    const latestServiceLabel = churchData.latestServiceDate ? `(${new Date(churchData.latestServiceDate).toLocaleDateString('en-CA', { month: 'short', day: 'numeric', year: 'numeric' })})` : '(no service captured)';
+
     const statCards = [
         { label: 'Total Members', value: churchData.totalMembers, tone: 'from-red-600 to-red-500', accent: 'text-red-600', glow: 'shadow-red-200/80' },
         { label: 'Active Users', value: churchData.totalUsers, tone: 'from-rose-600 to-pink-500', accent: 'text-rose-600', glow: 'shadow-rose-200/80' },
-        { label: 'Attendance Today', value: churchData.attendanceToday, tone: 'from-orange-500 to-amber-400', accent: 'text-orange-600', glow: 'shadow-orange-200/80' },
-        { label: 'First Timers', value: churchData.firstTimersToday, tone: 'from-red-700 to-rose-600', accent: 'text-red-700', glow: 'shadow-red-200/80' },
+        { label: `Attendance ${latestServiceLabel}`, value: churchData.attendanceToday, tone: 'from-orange-500 to-amber-400', accent: 'text-orange-600', glow: 'shadow-orange-200/80' },
+        { label: `First Timers ${latestServiceLabel}`, value: churchData.firstTimersToday, tone: 'from-red-700 to-rose-600', accent: 'text-red-700', glow: 'shadow-red-200/80' },
     ];
 
     const [animatedValues, setAnimatedValues] = useState<number[]>(statCards.map(() => 0));

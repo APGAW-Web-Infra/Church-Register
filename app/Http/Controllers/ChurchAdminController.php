@@ -17,8 +17,21 @@ class ChurchAdminController extends Controller
     {
         $userCount = User::query()->count('*');
         $memberCount = MemberProfile::count();
-        $attendanceToday = AttendanceRecord::whereDate('service_date', today())->count();
-        $firstTimersToday = AttendanceRecord::whereDate('service_date', today())->where('first_timer', true)->count();
+        $latestServiceDate = AttendanceRecord::query()->max('service_date');
+
+        $liveAttendanceQuery = AttendanceRecord::query();
+        if ($latestServiceDate) {
+            $liveAttendanceQuery->whereDate('service_date', $latestServiceDate);
+        }
+
+        $qualifyingAttendanceForLatestService = (clone $liveAttendanceQuery)->whereIn('status', ['present', 'late']);
+
+        $attendanceToday = $latestServiceDate
+            ? (clone $qualifyingAttendanceForLatestService)->count()
+            : 0;
+        $firstTimersToday = $latestServiceDate
+            ? (clone $qualifyingAttendanceForLatestService)->where('first_timer', true)->count()
+            : 0;
 
         $memberLifecycle = [
             'total_active_members' => MemberProfile::where('is_active', true)->where('membership_status', 'member')->count(),
@@ -194,6 +207,7 @@ class ChurchAdminController extends Controller
                 'totalUsers' => $userCount,
                 'attendanceToday' => $attendanceToday,
                 'firstTimersToday' => $firstTimersToday,
+                'latestServiceDate' => $latestServiceDate ? Carbon::parse($latestServiceDate)->format('Y-m-d') : null,
                 'serviceName' => 'Sunday Worship Service',
                 'memberLifecycle' => $memberLifecycle,
                 'referralConversion' => $referralConversion,
@@ -402,10 +416,17 @@ class ChurchAdminController extends Controller
             ->whereDate('service_date', $serviceDate)
             ->first();
 
+        $isFirstTimer = (bool) ($validated['first_timer'] ?? $record?->first_timer ?? false);
+        $effectiveStatus = $validated['status'] ?? $record?->status ?? 'present';
+
+        if ($isFirstTimer && ! in_array($effectiveStatus, ['present', 'late'], true)) {
+            $effectiveStatus = 'present';
+        }
+
         $attributes = [
             'user_id' => $memberProfile->user_id ?? $request->user()->id,
-            'status' => $validated['status'] ?? 'present',
-            'first_timer' => (bool) ($validated['first_timer'] ?? $record?->first_timer ?? false),
+            'status' => $effectiveStatus,
+            'first_timer' => $isFirstTimer,
             'recorded_by' => $request->user()->id,
         ];
 

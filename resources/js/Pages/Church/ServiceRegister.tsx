@@ -66,12 +66,14 @@ export default function ServiceRegister({
     const primaryServiceLabel = serviceTypes.find((option) => option.value === serviceType)?.label ?? 'Main Service';
 
     const toggleFirstTimer = (memberProfileId: number, date: string, selectedMonth: string, selectedServiceType: string, currentStatus: string | null, currentValue: boolean) => {
+        const nextStatus = currentStatus === 'present' || currentStatus === 'late' ? currentStatus : 'present';
+
         router.post(route('church-admin.service-register.attendance'), {
             member_profile_id: memberProfileId,
             service_type: selectedServiceType,
             month: selectedMonth,
             service_date: date,
-            status: currentStatus ?? 'present',
+            status: nextStatus,
             first_timer: !currentValue,
         }, { preserveScroll: true });
     };
