@@ -702,17 +702,32 @@ class ChurchOperationsController extends Controller
 
     public function absentees(Request $request)
     {
-        $latestServiceDates = AttendanceRecord::query()
+        $validated = $request->validate([
+            'period' => ['nullable', 'in:week,month'],
+            'date' => ['nullable', 'date'],
+        ]);
+        $period = $validated['period'] ?? 'week';
+        $latestDate = AttendanceRecord::query()
             ->where('service_type', 'main_service')
             ->whereIn('status', ['absent', 'excused'])
+            ->orderByDesc('service_date')
+            ->value('service_date');
+        $selectedDate = Carbon::parse($validated['date'] ?? $latestDate ?? now());
+        [$periodStart, $periodEnd] = $period === 'month'
+            ? [$selectedDate->copy()->startOfMonth(), $selectedDate->copy()->endOfMonth()]
+            : [$selectedDate->copy()->startOfWeek(Carbon::SUNDAY), $selectedDate->copy()->endOfWeek(Carbon::SATURDAY)];
+
+        $periodDates = AttendanceRecord::query()
+            ->where('service_type', 'main_service')
+            ->whereIn('status', ['absent', 'excused'])
+            ->whereBetween('service_date', [$periodStart->toDateString(), $periodEnd->toDateString()])
             ->selectRaw('DISTINCT DATE(service_date) as service_date')
             ->orderByDesc('service_date')
-            ->limit(30)
             ->pluck('service_date');
 
         $absentees = collect();
 
-        foreach ($latestServiceDates as $serviceDate) {
+        foreach ($periodDates as $serviceDate) {
             $records = AttendanceRecord::query()
                 ->where('service_type', 'main_service')
                 ->whereDate('service_date', $serviceDate)
@@ -742,8 +757,34 @@ class ChurchOperationsController extends Controller
             }
         }
 
+        $savedWeeks = AttendanceRecord::query()
+            ->where('service_type', 'main_service')
+            ->whereIn('status', ['absent', 'excused'])
+            ->get(['service_date', 'status'])
+            ->groupBy(fn ($record) => Carbon::parse($record->service_date)->startOfWeek(Carbon::SUNDAY)->toDateString())
+            ->map(function ($records, $weekStart) {
+                $start = Carbon::parse($weekStart);
+
+                return [
+                    'start' => $start->toDateString(),
+                    'label' => $start->format('M j') . ' - ' . $start->copy()->addDays(6)->format('M j, Y'),
+                    'records' => $records->count(),
+                    'excused' => $records->where('status', 'excused')->count(),
+                ];
+            })
+            ->sortByDesc('start')
+            ->take(26)
+            ->values()
+            ->all();
+
         return Inertia::render('Church/AbsenteeBoard', [
             'absentees' => $absentees->sortByDesc('service_date')->values()->all(),
+            'period' => $period,
+            'selectedDate' => $selectedDate->toDateString(),
+            'periodLabel' => $period === 'month'
+                ? $selectedDate->format('F Y')
+                : $periodStart->format('M j') . ' - ' . $periodEnd->format('M j, Y'),
+            'savedWeeks' => $savedWeeks,
             'flash' => [
                 'success' => $request->session()->get('success'),
             ],

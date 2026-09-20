@@ -1,5 +1,5 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { Head, useForm } from '@inertiajs/react';
+import { Head, router, useForm } from '@inertiajs/react';
 import jsPDF from 'jspdf';
 
 interface AbsenteeRecord {
@@ -12,7 +12,14 @@ interface AbsenteeRecord {
     photo_url?: string | null;
 }
 
-export default function AbsenteeBoard({ absentees, flash }: { absentees: AbsenteeRecord[]; flash?: { success?: string } }) {
+interface SavedWeek {
+    start: string;
+    label: string;
+    records: number;
+    excused: number;
+}
+
+export default function AbsenteeBoard({ absentees, flash, period = 'week', selectedDate, periodLabel, savedWeeks = [] }: { absentees: AbsenteeRecord[]; flash?: { success?: string }; period?: 'week' | 'month'; selectedDate: string; periodLabel: string; savedWeeks?: SavedWeek[] }) {
     const { data, setData, post, processing } = useForm({
         member_name: '',
         reason: '',
@@ -24,6 +31,17 @@ export default function AbsenteeBoard({ absentees, flash }: { absentees: Absente
     const submit = (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
         post('/church-admin/absentees');
+    };
+
+    const changeScope = (nextPeriod: 'week' | 'month', nextDate = selectedDate) => {
+        const normalizedDate = nextPeriod === 'month' && nextDate.length === 7 ? `${nextDate}-01` : nextDate;
+        router.get('/church-admin/absentees', { period: nextPeriod, date: normalizedDate }, { preserveState: true, replace: true });
+    };
+
+    const moveWeek = (offset: number) => {
+        const date = new Date(`${selectedDate}T12:00:00`);
+        date.setDate(date.getDate() + offset * 7);
+        changeScope('week', date.toISOString().slice(0, 10));
     };
 
     const exportAbsenteeReport = () => {
@@ -164,6 +182,28 @@ export default function AbsenteeBoard({ absentees, flash }: { absentees: Absente
                 <div className="mb-6">
                     <p className="text-xs font-semibold uppercase tracking-[0.25em] text-red-600">Service Visibility</p>
                     <h1 className="mt-2 text-3xl font-bold text-slate-900">Absentee Board</h1>
+                    <p className="mt-2 text-sm text-slate-600">Review saved absentee records week by week or across a full month.</p>
+                </div>
+
+                <div className="mb-6 flex flex-wrap items-end gap-3 rounded-2xl border border-red-100 bg-white p-4 shadow-sm">
+                    <label className="text-sm font-semibold text-slate-700">
+                        View period
+                        <select value={period} onChange={(event) => changeScope(event.target.value as 'week' | 'month')} className="mt-1 block rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm">
+                            <option value="week">Week by week</option>
+                            <option value="month">Monthly view</option>
+                        </select>
+                    </label>
+                    <label className="text-sm font-semibold text-slate-700">
+                        {period === 'week' ? 'Any date in week' : 'Month'}
+                        <input type={period === 'month' ? 'month' : 'date'} value={period === 'month' ? selectedDate.slice(0, 7) : selectedDate} onChange={(event) => changeScope(period, event.target.value)} className="mt-1 block rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm" />
+                    </label>
+                    {period === 'week' && (
+                        <div className="flex gap-2">
+                            <button type="button" onClick={() => moveWeek(-1)} className="rounded-xl border border-slate-200 px-3 py-2.5 text-sm font-semibold text-slate-700 hover:border-red-300 hover:text-red-700">← Previous week</button>
+                            <button type="button" onClick={() => moveWeek(1)} className="rounded-xl border border-slate-200 px-3 py-2.5 text-sm font-semibold text-slate-700 hover:border-red-300 hover:text-red-700">Next week →</button>
+                        </div>
+                    )}
+                    <div className="ml-auto rounded-xl bg-red-50 px-4 py-2.5 text-sm font-semibold text-red-700">{periodLabel}</div>
                 </div>
 
                 {flash?.success && (
@@ -179,7 +219,7 @@ export default function AbsenteeBoard({ absentees, flash }: { absentees: Absente
                             <h2 className="mt-2 text-2xl font-bold">People to follow up with</h2>
                         </div>
                         <div className="flex items-center gap-3">
-                            <p className="text-xs text-slate-400">Showing the latest {Math.min(displayAbsentees.length, 18)} records</p>
+                            <p className="text-xs text-slate-400">Showing {displayAbsentees.length} records for {periodLabel}</p>
                             <button type="button" onClick={exportAbsenteeReport} className="rounded-xl bg-red-700 px-4 py-2 text-xs font-bold uppercase tracking-[0.16em] text-white shadow-lg transition hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-300">
                                 Report
                             </button>
@@ -219,6 +259,26 @@ export default function AbsenteeBoard({ absentees, flash }: { absentees: Absente
                     <h2 className="mb-2 text-lg font-semibold text-slate-900">Auto-generated absentee list</h2>
                     <p className="text-sm text-slate-600">Absentees are derived from the Sunday service register. If a member is not marked present, late, or excused for a service date, the record is automatically treated as absent.</p>
                 </div>
+
+                {period === 'week' && savedWeeks.length > 0 && (
+                    <section className="mb-8 rounded-3xl border border-amber-100 bg-amber-50/50 p-5 shadow-sm">
+                        <div className="flex flex-wrap items-end justify-between gap-3">
+                            <div>
+                                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-amber-700">Saved weekly history</p>
+                                <h2 className="mt-2 text-xl font-bold text-slate-900">Jump to a recorded week</h2>
+                            </div>
+                            <span className="text-xs text-slate-500">{savedWeeks.length} saved week(s)</span>
+                        </div>
+                        <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                            {savedWeeks.map((week) => (
+                                <button key={week.start} type="button" onClick={() => changeScope('week', week.start)} className={`rounded-2xl border bg-white p-4 text-left transition hover:-translate-y-0.5 hover:border-amber-400 hover:shadow-md ${week.start === selectedDate ? 'border-amber-500 ring-2 ring-amber-200' : 'border-amber-200'}`}>
+                                    <p className="text-sm font-bold text-slate-800">{week.label}</p>
+                                    <p className="mt-2 text-xs text-slate-500">{week.records} absentee record(s) · {week.excused} excused</p>
+                                </button>
+                            ))}
+                        </div>
+                    </section>
+                )}
 
                 <div className="overflow-hidden rounded-3xl border border-red-100 bg-white shadow-sm">
                     <table className="min-w-full divide-y divide-red-100 text-left">
