@@ -47,7 +47,9 @@ interface ReportAnalytics {
         present: number;
         late: number;
         byService: Record<string, number>;
-        weeklyTrend: { label: string; value: number }[];
+        trend: { label: string; value: number }[];
+        trendLabel: string;
+        trendDescription: string;
     };
 }
 
@@ -126,7 +128,23 @@ export default function ReportsDashboard({
         };
     };
 
-    const analytics = { ...getLocalAnalytics(), ...(serverAnalytics ?? {}) };
+    const localAnalytics = getLocalAnalytics();
+    const liveTrend = serverAnalytics?.liveAttendance?.trend ?? [];
+    const liveTrendMaximum = Math.max(...liveTrend.map((point) => point.value), 0);
+    const hasReportedAttendance = reports.some((report) => Number(report.attendance_count ?? 0) > 0);
+    const analytics = {
+        ...localAnalytics,
+        ...(serverAnalytics ?? {}),
+        attendanceSeries: hasReportedAttendance
+            ? localAnalytics.attendanceSeries
+            : liveTrend.map((point, index) => ({
+                id: index,
+                label: point.label,
+                period: periodType,
+                value: point.value,
+                width: liveTrendMaximum ? Math.max((point.value / liveTrendMaximum) * 100, point.value ? 4 : 0) : 0,
+            })),
+    };
 
     const exportReportsPdf = () => {
         const pdf = new jsPDF({ unit: 'pt', format: 'a4' });
@@ -409,22 +427,22 @@ export default function ReportsDashboard({
                     <div className="flex flex-wrap items-end justify-between gap-3">
                         <div>
                             <p className="text-xs font-semibold uppercase tracking-[0.2em] text-red-600">Live attendance movement</p>
-                            <h2 className="mt-2 text-xl font-bold text-slate-900">Eight-week service rhythm</h2>
+                            <h2 className="mt-2 text-xl font-bold text-slate-900">{analytics.liveAttendance?.trendLabel ?? 'Service rhythm'}</h2>
                         </div>
-                        <p className="text-sm text-slate-500">Raw present and late records by service week</p>
+                        <p className="text-sm text-slate-500">{analytics.liveAttendance?.trendDescription ?? 'Raw present and late attendance records'}</p>
                     </div>
-                    <div className="mt-6 grid grid-cols-4 gap-3 sm:grid-cols-8">
-                        {(analytics.liveAttendance?.weeklyTrend ?? []).map((week) => {
-                            const max = Math.max(...(analytics.liveAttendance?.weeklyTrend ?? []).map((item) => item.value), 1);
-                            const height = Math.max((week.value / max) * 100, week.value ? 10 : 3);
+                    <div className={`mt-6 grid gap-3 ${periodType === 'annual' ? 'grid-cols-4 sm:grid-cols-6 lg:grid-cols-12' : 'grid-cols-4 sm:grid-cols-8'}`}>
+                        {(analytics.liveAttendance?.trend ?? []).map((period) => {
+                            const max = Math.max(...(analytics.liveAttendance?.trend ?? []).map((item) => item.value), 1);
+                            const height = Math.max((period.value / max) * 100, period.value ? 10 : 3);
 
                             return (
-                                <div key={week.label} className="group flex min-w-0 flex-col items-center gap-2">
+                                <div key={period.label} className="group flex min-w-0 flex-col items-center gap-2">
                                     <div className="flex h-36 w-full items-end justify-center rounded-xl bg-slate-50 p-2">
-                                        <div className="w-full rounded-lg bg-gradient-to-t from-red-700 to-orange-400 transition-all duration-500 group-hover:from-red-500 group-hover:to-amber-300" style={{ height: `${height}%` }} title={`${week.value} qualifying records`} />
+                                        <div className="w-full rounded-lg bg-gradient-to-t from-red-700 to-orange-400 transition-all duration-500 group-hover:from-red-500 group-hover:to-amber-300" style={{ height: `${height}%` }} title={`${period.value} qualifying records`} />
                                     </div>
-                                    <span className="text-[10px] font-semibold text-slate-500">{week.label}</span>
-                                    <span className="text-xs font-bold text-slate-800">{week.value}</span>
+                                    <span className="text-[10px] font-semibold text-slate-500">{period.label}</span>
+                                    <span className="text-xs font-bold text-slate-800">{period.value}</span>
                                 </div>
                             );
                         })}

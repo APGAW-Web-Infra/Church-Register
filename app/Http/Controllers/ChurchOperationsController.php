@@ -293,16 +293,30 @@ class ChurchOperationsController extends Controller
 
         $reportDate = Carbon::parse($validated['report_date']);
         $liveSummary = $this->liveAttendanceReportSummary($validated['period_type'], $reportDate);
+        $hasManualSummary = !empty(trim((string) ($validated['summary'] ?? '')));
+
+        $attendanceCount = $hasManualSummary && array_key_exists('attendance_count', $validated)
+            ? ($validated['attendance_count'] ?? $liveSummary['attendance_count'])
+            : $liveSummary['attendance_count'];
+        $firstTimersCount = $hasManualSummary && array_key_exists('first_timers_count', $validated)
+            ? ($validated['first_timers_count'] ?? $liveSummary['first_timers_count'])
+            : $liveSummary['first_timers_count'];
+        $newMembersCount = $hasManualSummary && array_key_exists('new_members_count', $validated)
+            ? ($validated['new_members_count'] ?? $liveSummary['new_members_count'])
+            : $liveSummary['new_members_count'];
+        $prayerRequestsCount = $hasManualSummary && array_key_exists('prayer_requests_count', $validated)
+            ? ($validated['prayer_requests_count'] ?? $liveSummary['prayer_requests_count'])
+            : $liveSummary['prayer_requests_count'];
 
         ChurchReport::create([
             'period_type' => $validated['period_type'],
             'title' => $validated['title'],
             'report_date' => $validated['report_date'],
             'summary' => $validated['summary'] ?? $this->buildReportSummary($validated['period_type'], $reportDate, $liveSummary),
-            'attendance_count' => $validated['attendance_count'] ?? $liveSummary['attendance_count'],
-            'first_timers_count' => $validated['first_timers_count'] ?? $liveSummary['first_timers_count'],
-            'new_members_count' => $validated['new_members_count'] ?? $liveSummary['new_members_count'],
-            'prayer_requests_count' => $validated['prayer_requests_count'] ?? $liveSummary['prayer_requests_count'],
+            'attendance_count' => $attendanceCount,
+            'first_timers_count' => $firstTimersCount,
+            'new_members_count' => $newMembersCount,
+            'prayer_requests_count' => $prayerRequestsCount,
         ]);
 
         return redirect()->route('church-admin.reports')->with('success', 'Church report saved successfully.');
@@ -330,7 +344,7 @@ class ChurchOperationsController extends Controller
 
         return Inertia::render('Church/ReportsDashboard', [
             'reports' => $reports,
-            'analytics' => $this->reportAnalytics($reports, $scorecardsQuery->get()),
+            'analytics' => $this->reportAnalytics($reports, $scorecardsQuery->get(), $periodType),
             'periodType' => $periodType,
             'analyticsLabels' => [
                 'attendanceTrend' => 'Attendance trend',
@@ -343,11 +357,46 @@ class ChurchOperationsController extends Controller
         ]);
     }
 
-    private function reportAnalytics(Collection $reports, Collection $scorecards): array
+    private function reportAnalytics(Collection $reports, Collection $scorecards, string $periodType = 'all'): array
     {
         $sorted = $reports->sortBy('report_date')->values();
         $weekly = $reports->where('period_type', 'weekly')->sortBy('report_date')->values();
-        $totalAttendance = (int) $reports->sum('attendance_count');
+
+        $liveAttendanceQuery = AttendanceRecord::query()
+            ->whereIn('status', ['present', 'late']);
+        $liveMemberQuery = MemberProfile::query();
+        $livePrayerQuery = ChurchPrayerRequest::query();
+        $liveStartDate = null;
+        $liveEndDate = null;
+
+        if ($periodType === 'annual') {
+            $year = now()->year;
+            $startOfYear = Carbon::create($year, 1, 1)->startOfDay();
+            $endOfYear = Carbon::create($year, 12, 31)->endOfDay();
+            $liveStartDate = $startOfYear->toDateString();
+            $liveEndDate = $endOfYear->toDateString();
+            $liveAttendanceQuery->whereBetween('service_date', [$startOfYear->toDateString(), $endOfYear->toDateString()]);
+            $liveMemberQuery->whereBetween('created_at', [$startOfYear, $endOfYear]);
+            $livePrayerQuery->whereBetween('created_at', [$startOfYear, $endOfYear]);
+        }
+
+        $liveAttendance = $liveAttendanceQuery->get()->groupBy('service_type');
+        $liveAttendanceTotal = $liveAttendance->flatten(1)->count();
+        $liveFirstTimers = (clone $liveAttendanceQuery)
+            ->where('first_timer', true)
+            ->count();
+        $liveNewMembers = $liveMemberQuery->count();
+        $livePrayerRequests = $livePrayerQuery->count();
+
+        $reportedAttendanceTotal = (int) $reports->sum('attendance_count');
+        $reportedFirstTimersTotal = (int) $reports->sum('first_timers_count');
+        $reportedNewMembersTotal = (int) $reports->sum('new_members_count');
+        $reportedPrayerRequestsTotal = (int) $reports->sum('prayer_requests_count');
+        $totalAttendance = ($reports->isEmpty() || $reportedAttendanceTotal === 0) ? $liveAttendanceTotal : $reportedAttendanceTotal;
+        $totalFirstTimers = ($reports->isEmpty() || $reportedFirstTimersTotal === 0) ? $liveFirstTimers : $reportedFirstTimersTotal;
+        $totalNewMembers = ($reports->isEmpty() || $reportedNewMembersTotal === 0) ? $liveNewMembers : $reportedNewMembersTotal;
+        $totalPrayerRequests = ($reports->isEmpty() || $reportedPrayerRequestsTotal === 0) ? $livePrayerRequests : $reportedPrayerRequestsTotal;
+
         $previous = $weekly->count() > 1 ? (int) $weekly->get($weekly->count() - 2)->attendance_count : (int) ($weekly->first()->attendance_count ?? 0);
         $latest = $weekly->count() > 1 ? (int) $weekly->last()->attendance_count : (int) ($sorted->last()->attendance_count ?? 0);
         $growth = $previous > 0 ? (int) round((($latest - $previous) / $previous) * 100) : 0;
@@ -375,47 +424,61 @@ class ChurchOperationsController extends Controller
             : 0;
         $newMembersTrend = $previousReport
             ? (int) $latestReport->new_members_count - (int) $previousReport->new_members_count
-            : (int) ($latestReport->new_members_count ?? 0);
+            : ($reports->isEmpty() || $reportedNewMembersTotal === 0 ? $liveNewMembers : (int) ($latestReport->new_members_count ?? 0));
         $firstTimerTrend = $previousReport
             ? (int) $latestReport->first_timers_count - (int) $previousReport->first_timers_count
-            : (int) ($latestReport->first_timers_count ?? 0);
+            : ($reports->isEmpty() || $reportedFirstTimersTotal === 0 ? $liveFirstTimers : (int) ($latestReport->first_timers_count ?? 0));
         $prayerMomentum = $previousReport
             ? (int) $latestReport->prayer_requests_count - (int) $previousReport->prayer_requests_count
-            : (int) ($latestReport->prayer_requests_count ?? 0);
-        $engagementRate = $totalAttendance > 0 ? (int) round((($reports->sum('first_timers_count') / $totalAttendance) * 100)) : 0;
+            : ($reports->isEmpty() || $reportedPrayerRequestsTotal === 0 ? $livePrayerRequests : (int) ($latestReport->prayer_requests_count ?? 0));
+        $engagementRate = $totalAttendance > 0 ? (int) round((($totalFirstTimers / $totalAttendance) * 100)) : 0;
         $leadershipSummary = $latestReport
             ? "Latest church pulse: {$latestReport->title} (" . Carbon::parse($latestReport->report_date)->format('Y-m-d') . ") - attendance {$latestReport->attendance_count}, first timers {$latestReport->first_timers_count}, prayer requests {$latestReport->prayer_requests_count}."
-            : 'No church reports are available yet.';
+            : "Latest live church pulse: attendance {$liveAttendanceTotal}, first timers {$liveFirstTimers}, prayer requests {$livePrayerRequests}.";
         $leadershipInsight = $strongest
             ? 'The strongest reporting period is ' . strtolower($strongest) . ' with ' . $periodTotals->get($strongest) . ' recorded attendees.'
             : 'No attendance trend data yet.';
-        $liveAttendance = AttendanceRecord::query()
-            ->whereIn('status', ['present', 'late'])
-            ->get()
-            ->groupBy('service_type');
-        $liveAttendanceTotal = $liveAttendance->flatten(1)->count();
-        $trendStart = now()->startOfWeek()->subWeeks(7);
-        $liveWeeklyTrend = AttendanceRecord::query()
-            ->whereIn('status', ['present', 'late'])
-            ->whereDate('service_date', '>=', $trendStart->toDateString())
-            ->whereDate('service_date', '<=', now()->endOfWeek()->toDateString())
-            ->get()
-            ->groupBy(fn ($record) => $record->service_date->copy()->startOfWeek()->toDateString());
-        $liveWeeklySeries = collect(range(0, 7))->map(function (int $offset) use ($trendStart, $liveWeeklyTrend): array {
-            $week = $trendStart->copy()->addWeeks($offset);
+        if ($periodType === 'annual') {
+            $annualTrendStart = Carbon::parse($liveStartDate)->startOfMonth();
+            $annualTrend = (clone $liveAttendanceQuery)
+                ->get()
+                ->groupBy(fn ($record) => $record->service_date->copy()->startOfMonth()->format('Y-m'));
+            $liveTrendSeries = collect(range(0, 11))->map(function (int $offset) use ($annualTrendStart, $annualTrend): array {
+                $month = $annualTrendStart->copy()->addMonths($offset);
 
-            return [
-                'label' => $week->format('M j'),
-                'value' => $liveWeeklyTrend->get($week->toDateString(), collect())->count(),
-            ];
-        })->all();
+                return [
+                    'label' => $month->format('M'),
+                    'value' => $annualTrend->get($month->format('Y-m'), collect())->count(),
+                ];
+            })->all();
+            $liveTrendLabel = 'Twelve-month service rhythm';
+            $liveTrendDescription = 'Raw present and late records by service month';
+        } else {
+            $trendStart = now()->startOfWeek()->subWeeks(7);
+            $liveWeeklyTrend = AttendanceRecord::query()
+                ->whereIn('status', ['present', 'late'])
+                ->whereDate('service_date', '>=', $trendStart->toDateString())
+                ->whereDate('service_date', '<=', now()->endOfWeek()->toDateString())
+                ->get()
+                ->groupBy(fn ($record) => $record->service_date->copy()->startOfWeek()->toDateString());
+            $liveTrendSeries = collect(range(0, 7))->map(function (int $offset) use ($trendStart, $liveWeeklyTrend): array {
+                $week = $trendStart->copy()->addWeeks($offset);
+
+                return [
+                    'label' => $week->format('M j'),
+                    'value' => $liveWeeklyTrend->get($week->toDateString(), collect())->count(),
+                ];
+            })->all();
+            $liveTrendLabel = 'Eight-week service rhythm';
+            $liveTrendDescription = 'Raw present and late records by service week';
+        }
 
         return [
             'totalAttendance' => $totalAttendance,
-            'totalFirstTimers' => (int) $reports->sum('first_timers_count'),
-            'totalNewMembers' => (int) $reports->sum('new_members_count'),
-            'totalPrayerRequests' => (int) $reports->sum('prayer_requests_count'),
-            'averageAttendance' => $reports->count() ? (int) round($totalAttendance / $reports->count()) : 0,
+            'totalFirstTimers' => $totalFirstTimers,
+            'totalNewMembers' => $totalNewMembers,
+            'totalPrayerRequests' => $totalPrayerRequests,
+            'averageAttendance' => $reports->count() ? (int) round($totalAttendance / $reports->count()) : ($totalAttendance > 0 ? $totalAttendance : 0),
             'attendanceTrend' => $trend >= 0 ? "+{$trend}" : (string) $trend,
             'weeklyGrowth' => ($growth >= 0 ? '+' : '') . "{$growth}%",
             'strongestPeriod' => $strongest ? ucfirst($strongest) . ' (' . $periodTotals->get($strongest) . ')' : 'No data',
@@ -438,15 +501,18 @@ class ChurchOperationsController extends Controller
             'leadershipInsight' => $leadershipInsight,
             'liveAttendance' => [
                 'total' => $liveAttendanceTotal,
-                'present' => AttendanceRecord::query()->where('status', 'present')->count(),
-                'late' => AttendanceRecord::query()->where('status', 'late')->count(),
+                'present' => (clone $liveAttendanceQuery)->where('status', 'present')->count(),
+                'late' => (clone $liveAttendanceQuery)->where('status', 'late')->count(),
                 'byService' => [
                     'main_service' => $liveAttendance->get('main_service', collect())->count(),
                     'sunday_school' => $liveAttendance->get('sunday_school', collect())->count(),
                     'workers_meeting' => $liveAttendance->get('workers_meeting', collect())->count(),
                     'prayer_meeting' => $liveAttendance->get('prayer_meeting', collect())->count(),
                 ],
-                'weeklyTrend' => $liveWeeklySeries,
+                'trend' => $liveTrendSeries,
+                'weeklyTrend' => $liveTrendSeries,
+                'trendLabel' => $liveTrendLabel,
+                'trendDescription' => $liveTrendDescription,
             ],
         ];
     }
@@ -504,8 +570,8 @@ class ChurchOperationsController extends Controller
 
         $qualifyingRecords = AttendanceRecord::query()
             ->whereIn('status', ['present', 'late'])
-            ->whereRaw('DATE(service_date) >= ?', [$start->toDateString()])
-            ->whereRaw('DATE(service_date) <= ?', [$end->toDateString()])
+            ->whereDate('service_date', '>=', $start->toDateString())
+            ->whereDate('service_date', '<=', $end->toDateString())
             ->get();
 
         $newMembersCount = MemberProfile::query()
@@ -518,7 +584,7 @@ class ChurchOperationsController extends Controller
 
         return [
             'attendance_count' => $qualifyingRecords->count(),
-            'first_timers_count' => $qualifyingRecords->where('first_timer', true)->count(),
+            'first_timers_count' => $qualifyingRecords->filter(fn ($record) => (bool) $record->first_timer)->count(),
             'new_members_count' => $newMembersCount,
             'prayer_requests_count' => $prayerRequestsCount,
         ];
