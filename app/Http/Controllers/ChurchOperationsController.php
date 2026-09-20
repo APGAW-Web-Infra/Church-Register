@@ -345,13 +345,13 @@ class ChurchOperationsController extends Controller
         $analytics = $this->reportAnalytics($reports, $scorecardsQuery->get(), $periodType);
         $liveReport = null;
 
-        if ($periodType === 'annual' && $reports->isEmpty()) {
+        if ($periodType !== 'all' && $reports->isEmpty()) {
             $liveReport = [
                 'id' => 0,
-                'period_type' => 'annual',
-                'title' => 'Live annual summary (' . now()->year . ')',
+            'period_type' => $periodType,
+            'title' => 'Live ' . ucfirst($periodType) . ' summary',
                 'report_date' => now()->toDateString(),
-                'summary' => 'Live summary generated from qualifying attendance records for the current calendar year.',
+            'summary' => 'Live summary generated from qualifying attendance records for the current ' . $periodType . ' scope.',
                 'attendance_count' => $analytics['totalAttendance'],
                 'first_timers_count' => $analytics['totalFirstTimers'],
                 'new_members_count' => $analytics['totalNewMembers'],
@@ -388,15 +388,13 @@ class ChurchOperationsController extends Controller
         $liveStartDate = null;
         $liveEndDate = null;
 
-        if ($periodType === 'annual') {
-            $year = now()->year;
-            $startOfYear = Carbon::create($year, 1, 1)->startOfDay();
-            $endOfYear = Carbon::create($year, 12, 31)->endOfDay();
-            $liveStartDate = $startOfYear->toDateString();
-            $liveEndDate = $endOfYear->toDateString();
-            $liveAttendanceQuery->whereBetween('service_date', [$startOfYear->toDateString(), $endOfYear->toDateString()]);
-            $liveMemberQuery->whereBetween('created_at', [$startOfYear, $endOfYear]);
-            $livePrayerQuery->whereBetween('created_at', [$startOfYear, $endOfYear]);
+        if ($periodType !== 'all') {
+            [$scopeStart, $scopeEnd] = $this->reportDateRange($periodType, now());
+            $liveStartDate = $scopeStart->toDateString();
+            $liveEndDate = $scopeEnd->toDateString();
+            $liveAttendanceQuery->whereBetween('service_date', [$liveStartDate, $liveEndDate]);
+            $liveMemberQuery->whereBetween('created_at', [$scopeStart, $scopeEnd]);
+            $livePrayerQuery->whereBetween('created_at', [$scopeStart, $scopeEnd]);
         }
 
         $liveAttendance = $liveAttendanceQuery->get()->groupBy('service_type');
@@ -474,11 +472,16 @@ class ChurchOperationsController extends Controller
             $liveTrendDescription = 'Raw present and late records by service month';
         } else {
             $trendStart = now()->startOfWeek()->subWeeks(7);
-            $liveWeeklyTrend = AttendanceRecord::query()
+            $liveWeeklyTrendQuery = AttendanceRecord::query()
                 ->whereIn('status', ['present', 'late'])
                 ->whereDate('service_date', '>=', $trendStart->toDateString())
-                ->whereDate('service_date', '<=', now()->endOfWeek()->toDateString())
-                ->get()
+                ->whereDate('service_date', '<=', now()->endOfWeek()->toDateString());
+            if ($liveStartDate && $liveEndDate) {
+                $liveWeeklyTrendQuery
+                    ->whereDate('service_date', '>=', $liveStartDate)
+                    ->whereDate('service_date', '<=', $liveEndDate);
+            }
+            $liveWeeklyTrend = $liveWeeklyTrendQuery->get()
                 ->groupBy(fn ($record) => $record->service_date->copy()->startOfWeek()->toDateString());
             $liveTrendSeries = collect(range(0, 7))->map(function (int $offset) use ($trendStart, $liveWeeklyTrend): array {
                 $week = $trendStart->copy()->addWeeks($offset);
