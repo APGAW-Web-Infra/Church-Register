@@ -193,19 +193,19 @@ export default function AdminDashboard({ churchData }: { churchData: ChurchData 
                     </div>
                 </div>
 
-                <div className="mt-8 grid gap-5 md:grid-cols-2 xl:grid-cols-4">
+                <div className="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
                     {[
                         { label: 'Referral conversion', value: `${referralConversion.rate}%`, detail: `${referralConversion.validated}/${referralConversion.total} validated`, tone: 'from-rose-600 to-red-500' },
                         { label: 'Pending invites', value: `${referralConversion.pending}`, detail: 'Awaiting validation', tone: 'from-amber-500 to-orange-400' },
                         { label: 'Onboarding complete', value: `${onboardingCompletion.rate}%`, detail: `${onboardingCompletion.completed}/${onboardingCompletion.total} finished`, tone: 'from-emerald-500 to-teal-500' },
                         { label: 'Incomplete onboarding', value: `${onboardingCompletion.incomplete}`, detail: 'Follow-up required', tone: 'from-violet-600 to-indigo-500' },
                     ].map((item) => (
-                        <div key={item.label} className="group relative overflow-hidden rounded-[28px] border border-slate-200 bg-white p-5 shadow-[0_18px_45px_rgba(15,23,42,0.04)] transition duration-300 hover:-translate-y-1 hover:shadow-xl">
-                            <div className={`absolute inset-x-0 top-0 h-1.5 bg-gradient-to-r ${item.tone}`} />
-                            <p className="text-[10px] font-bold uppercase tracking-[0.28em] text-slate-500">{item.label}</p>
-                            <p className="mt-4 text-3xl font-black text-slate-900">{item.value}</p>
-                            <p className="mt-2 text-xs uppercase tracking-[0.18em] text-slate-500">{item.detail}</p>
-                            <div className="mt-5 h-2 overflow-hidden rounded-full bg-slate-100">
+                        <div key={item.label} className="group relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-3 shadow-sm transition duration-300 hover:-translate-y-0.5 hover:shadow-md">
+                            <div className={`absolute inset-x-0 top-0 h-1 bg-gradient-to-r ${item.tone}`} />
+                            <p className="text-[9px] font-bold uppercase tracking-[0.2em] text-slate-500">{item.label}</p>
+                            <p className="mt-2 text-2xl font-black text-slate-900">{item.value}</p>
+                            <p className="mt-1 text-[10px] uppercase tracking-[0.14em] text-slate-500">{item.detail}</p>
+                            <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-slate-100">
                                 <div className={`h-full rounded-full bg-gradient-to-r ${item.tone} transition-all duration-500`} style={{ width: `${Math.min(Number.parseInt(item.value, 10) || 0, 100)}%` }} />
                             </div>
                         </div>
