@@ -270,89 +270,20 @@ export default function AdminDashboard({ churchData }: { churchData: ChurchData 
                                 </Link>
                             ))}
                         </div>
-                    </div>
-                </div>
-
-                <div className="mt-6 grid gap-6 lg:grid-cols-[1fr_1fr]">
-                    <div className="rounded-[28px] border border-red-100 bg-white p-6 shadow-[0_18px_45px_rgba(15,23,42,0.04)]">
-                        <div className="flex items-center justify-between gap-3">
-                            <div>
-                                <p className="text-xs font-semibold uppercase tracking-[0.25em] text-red-600">Engagement pipeline</p>
-                                <h2 className="mt-2 text-xl font-bold text-slate-900">Outreach actions</h2>
-                            </div>
-                            <span className="rounded-full bg-red-50 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.2em] text-red-700">{engagementPipeline.length}</span>
+                        <div className="mt-5 grid gap-3 border-t border-amber-200 pt-5 sm:grid-cols-3">
+                            <Link href={route('church-admin.outreach')} className="group rounded-2xl border border-red-100 bg-red-50/60 p-3 transition hover:-translate-y-0.5 hover:border-red-300 hover:shadow-md">
+                                <div className="flex items-center justify-between gap-2"><p className="text-[10px] font-bold uppercase tracking-[0.16em] text-red-600">Outreach</p><span className="text-lg text-red-700 transition group-hover:translate-x-1">→</span></div>
+                                <p className="mt-2 text-sm font-bold text-slate-900">{engagementPipeline.length} action{engagementPipeline.length === 1 ? '' : 's'}</p>
+                            </Link>
+                            <Link href={route('church-admin.follow-up')} className="group rounded-2xl border border-red-100 bg-red-50/60 p-3 transition hover:-translate-y-0.5 hover:border-red-300 hover:shadow-md">
+                                <div className="flex items-center justify-between gap-2"><p className="text-[10px] font-bold uppercase tracking-[0.16em] text-red-600">Follow-up</p><span className="text-lg text-red-700 transition group-hover:translate-x-1">→</span></div>
+                                <p className="mt-2 text-sm font-bold text-slate-900">{followUpItems.length} contact{followUpItems.length === 1 ? '' : 's'}</p>
+                            </Link>
+                            <Link href={route('church-admin.birthdays')} className="group rounded-2xl border border-amber-200 bg-amber-50/60 p-3 transition hover:-translate-y-0.5 hover:border-amber-400 hover:shadow-md">
+                                <div className="flex items-center justify-between gap-2"><p className="text-[10px] font-bold uppercase tracking-[0.16em] text-amber-700">Birthdays</p><span className="text-lg text-amber-700 transition group-hover:translate-x-1">→</span></div>
+                                <p className="mt-2 text-sm font-bold text-slate-900">{birthdayItems.length} upcoming</p>
+                            </Link>
                         </div>
-                        {engagementPipeline.length > 0 ? (
-                            <ul className="mt-5 space-y-3 text-sm text-slate-600">
-                                {engagementPipeline.map((task) => (
-                                    <li key={`${task.task_type}-${task.name}`} className="rounded-2xl border border-red-100 bg-red-50/60 px-4 py-3 shadow-sm">
-                                        <div className="flex items-center justify-between gap-3">
-                                            <div>
-                                                <p className="font-semibold text-slate-800">{task.name}</p>
-                                                <p className="text-xs text-slate-500">{task.details}</p>
-                                            </div>
-                                            <span className={`rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.18em] ${task.priority === 'high' ? 'bg-rose-100 text-rose-700' : task.priority === 'medium' ? 'bg-amber-100 text-amber-700' : 'bg-slate-200 text-slate-700'}`}>
-                                                {task.priority}
-                                            </span>
-                                        </div>
-                                    </li>
-                                ))}
-                            </ul>
-                        ) : (
-                            <p className="mt-5 text-sm text-slate-500">No outreach tasks are currently waiting.</p>
-                        )}
-                    </div>
-
-                    <div className="rounded-[28px] border border-red-100 bg-white p-6 shadow-[0_18px_45px_rgba(15,23,42,0.04)]">
-                        <div className="flex items-center justify-between gap-3">
-                            <div>
-                                <p className="text-xs font-semibold uppercase tracking-[0.25em] text-red-600">Follow-up queue</p>
-                                <h2 className="mt-2 text-xl font-bold text-slate-900">Members to contact</h2>
-                            </div>
-                            <span className="rounded-full bg-red-50 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.2em] text-red-700">{followUpItems.length}</span>
-                        </div>
-                        {followUpItems.length > 0 ? (
-                            <ul className="mt-5 space-y-3 text-sm text-slate-600">
-                                {followUpItems.map((member) => (
-                                    <li key={member.id} className="rounded-2xl border border-red-100 bg-red-50/60 px-4 py-3 shadow-sm">
-                                        <div className="flex items-center justify-between gap-3">
-                                            <div>
-                                                <p className="font-semibold text-slate-800">{member.name}</p>
-                                                <p className="text-xs text-slate-500">{member.department}</p>
-                                            </div>
-                                            <span className={`rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.18em] ${member.reason === 'first_timer_follow_up' ? 'bg-rose-100 text-rose-700' : 'bg-slate-200 text-slate-700'}`}>
-                                                {member.reason === 'first_timer_follow_up' ? 'first timer' : 'inactive'}
-                                            </span>
-                                        </div>
-                                    </li>
-                                ))}
-                            </ul>
-                        ) : (
-                            <p className="mt-5 text-sm text-slate-500">No members are currently waiting for follow-up.</p>
-                        )}
-                    </div>
-
-                    <div className="rounded-[28px] border border-amber-100 bg-gradient-to-br from-amber-50 via-white to-yellow-50 p-6 shadow-[0_18px_45px_rgba(217,119,6,0.08)]">
-                        <h2 className="text-xl font-bold text-slate-900">Upcoming Birthdays</h2>
-                        {birthdayItems.length > 0 ? (
-                            <ul className="mt-5 space-y-3 text-sm text-slate-600">
-                                {birthdayItems.map((birthday) => (
-                                    <li key={birthday.id} className="rounded-2xl border border-amber-200 bg-white/80 px-4 py-3 shadow-sm transition hover:-translate-y-0.5">
-                                        <div className="flex items-center justify-between gap-3">
-                                            <div>
-                                                <p className="font-semibold text-slate-800">{birthday.name}</p>
-                                                <p className="text-xs text-slate-500">{birthday.department ?? 'Member'}</p>
-                                            </div>
-                                            <span className="rounded-full bg-amber-100 px-2.5 py-1 text-xs font-semibold text-amber-700">
-                                                {birthday.date_of_birth}
-                                            </span>
-                                        </div>
-                                    </li>
-                                ))}
-                            </ul>
-                        ) : (
-                            <p className="mt-5 text-sm text-slate-500">No member birthdays are currently scheduled.</p>
-                        )}
                     </div>
                 </div>
             </div>

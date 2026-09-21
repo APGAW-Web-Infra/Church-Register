@@ -120,6 +120,9 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/church-admin/members', [ChurchAdminController::class, 'members'])->name('church-admin.members');
         Route::post('/church-admin/members', [ChurchAdminController::class, 'storeMember'])->name('church-admin.members.store');
         Route::get('/church-admin/users', [ChurchAdminController::class, 'users'])->name('church-admin.users');
+        Route::get('/church-admin/outreach', [ChurchAdminController::class, 'outreach'])->name('church-admin.outreach');
+        Route::get('/church-admin/follow-up', [ChurchAdminController::class, 'followUp'])->name('church-admin.follow-up');
+        Route::get('/church-admin/birthdays', [ChurchAdminController::class, 'birthdays'])->name('church-admin.birthdays');
         Route::patch('/church-admin/users/{user}', [ChurchAdminController::class, 'updateUser'])->name('church-admin.users.update');
         Route::delete('/church-admin/users/{user}', [ChurchAdminController::class, 'deleteUser'])->name('church-admin.users.delete');
         Route::post('/church-admin/users/{user}/promote', [ChurchAdminController::class, 'promoteUser'])->name('church-admin.users.promote');

@@ -275,6 +275,61 @@ class ChurchAdminController extends Controller
         ]);
     }
 
+    public function outreach(Request $request)
+    {
+        $tasks = collect();
+        $incomplete = MemberProfile::query()->with('user')->where('is_active', true)->whereNull('profile_completed_at')->get();
+
+        foreach ($incomplete as $member) {
+            $tasks->push([
+                'type' => 'incomplete_onboarding',
+                'priority' => 'medium',
+                'name' => trim(($member->first_name ?? '') . ' ' . ($member->last_name ?? '')) ?: ($member->user?->name ?? 'Member'),
+                'details' => 'Complete onboarding and profile setup.',
+            ]);
+        }
+
+        return Inertia::render('Church/OutreachActions', [
+            'tasks' => $tasks->values()->all(),
+            'flash' => ['success' => $request->session()->get('success')],
+        ]);
+    }
+
+    public function followUp(Request $request)
+    {
+        $members = MemberProfile::query()->with('user')->where(function ($query) {
+            $query->where('is_active', false)
+                ->orWhere(function ($firstTimer) {
+                    $firstTimer->where('membership_status', 'first_timer')->where('is_active', true);
+                });
+        })->orderByRaw("CASE WHEN membership_status = 'first_timer' THEN 0 ELSE 1 END")->orderBy('updated_at', 'desc')->get()->map(fn ($member) => [
+            'id' => $member->id,
+            'name' => trim(($member->first_name ?? '') . ' ' . ($member->last_name ?? '')) ?: ($member->user?->name ?? 'Member'),
+            'department' => $member->department ?? 'General',
+            'type' => $member->membership_status === 'first_timer' ? 'first timer' : 'inactive',
+        ])->values()->all();
+
+        return Inertia::render('Church/FollowUpQueue', [
+            'members' => $members,
+            'flash' => ['success' => $request->session()->get('success')],
+        ]);
+    }
+
+    public function birthdays(Request $request)
+    {
+        $birthdays = MemberProfile::query()->whereNotNull('date_of_birth')->orderByRaw('MONTH(date_of_birth), DAY(date_of_birth)')->get()->map(fn ($member) => [
+            'id' => $member->id,
+            'name' => trim(($member->first_name ?? '') . ' ' . ($member->last_name ?? '')) ?: 'Member',
+            'department' => $member->department ?? 'Member',
+            'date_of_birth' => $member->date_of_birth->format('Y-m-d'),
+        ])->values()->all();
+
+        return Inertia::render('Church/BirthdaysBoard', [
+            'birthdays' => $birthdays,
+            'flash' => ['success' => $request->session()->get('success')],
+        ]);
+    }
+
     public function updateUser(Request $request, User $user)
     {
         $validated = $request->validate([
