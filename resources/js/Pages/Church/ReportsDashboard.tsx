@@ -30,6 +30,8 @@ interface ReportAnalytics {
     weeklyGrowth: string;
     attendanceSeries: { id: number; label: string; period: string; value: number; width: number }[];
     strongestPeriod: string;
+    leadershipHeadline: string;
+    leadershipNarrative: string;
     leadershipSummary: string;
     leadershipInsight: string;
     totalInvitations: number;
@@ -106,6 +108,12 @@ export default function ReportsDashboard({
             return acc;
         }, {});
         const strongestPeriodLabel = Object.entries(strongestPeriod).sort((a, b) => b[1] - a[1])[0];
+        const leadershipHeadline = latestReport
+            ? `Leadership brief: ${latestReport.title}`
+            : 'Leadership brief: Awaiting first report';
+        const leadershipNarrative = strongestPeriodLabel
+            ? `The strongest reporting period is ${strongestPeriodLabel[0]} with ${strongestPeriodLabel[1]} recorded attendees. This cycle reflects ${totalAttendance} total attendance and ${totalFirstTimers} first-timer touchpoints.`
+            : 'No attendance trend data yet. Add a report to publish the leadership briefing.';
 
         return {
             totalAttendance,
@@ -122,6 +130,8 @@ export default function ReportsDashboard({
             weeklyGrowth: `${weeklyGrowth >= 0 ? '+' : ''}${weeklyGrowth}%`,
             attendanceSeries,
             strongestPeriod: strongestPeriodLabel ? `${strongestPeriodLabel[0].toUpperCase()}${strongestPeriodLabel[0].slice(1)} (${strongestPeriodLabel[1]})` : 'No data',
+            leadershipHeadline,
+            leadershipNarrative,
             leadershipSummary: latestReport
                 ? `Latest church pulse: ${latestReport.title} (${latestReport.report_date}) - attendance ${latestReport.attendance_count}, first timers ${latestReport.first_timers_count}, prayer requests ${latestReport.prayer_requests_count}.`
                 : 'No church reports are available yet.',
@@ -135,9 +145,19 @@ export default function ReportsDashboard({
     const liveTrend = serverAnalytics?.liveAttendance?.trend ?? [];
     const liveTrendMaximum = Math.max(...liveTrend.map((point) => point.value), 0);
     const hasReportedAttendance = reports.some((report) => Number(report.attendance_count ?? 0) > 0);
+    const liveAttendanceTotal = serverAnalytics?.liveAttendance?.total ?? 0;
+    const liveFirstTimers = serverAnalytics?.totalFirstTimers ?? 0;
+    const fallbackLeadershipHeadline = liveAttendanceTotal > 0
+        ? 'Leadership brief: Live attendance summary'
+        : 'Leadership brief: Awaiting first report';
+    const fallbackLeadershipNarrative = liveAttendanceTotal > 0
+        ? `The live church ledger is reporting ${liveAttendanceTotal} qualifying attendance records and ${liveFirstTimers} first-timer touchpoints. This summary reflects current service activity until formal reports are posted.`
+        : 'No attendance trend data yet. Add a report to publish the leadership briefing.';
     const analytics = {
         ...localAnalytics,
         ...(serverAnalytics ?? {}),
+        leadershipHeadline: hasReportedAttendance ? localAnalytics.leadershipHeadline : fallbackLeadershipHeadline,
+        leadershipNarrative: hasReportedAttendance ? localAnalytics.leadershipNarrative : fallbackLeadershipNarrative,
         attendanceSeries: hasReportedAttendance
             ? localAnalytics.attendanceSeries
             : liveTrend.map((point, index) => ({
@@ -440,6 +460,19 @@ export default function ReportsDashboard({
                             Export Leadership PDF
                         </button>
                     </div>
+                </div>
+
+                <div className="mb-6 rounded-3xl border border-red-200 bg-gradient-to-r from-slate-950 via-slate-900 to-red-950 p-5 text-white shadow-sm">
+                    <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+                        <div>
+                            <p className="text-[10px] font-semibold uppercase tracking-[0.28em] text-red-200">Leadership brief</p>
+                            <h2 className="mt-2 text-2xl font-bold">{analytics.leadershipHeadline}</h2>
+                        </div>
+                        <div className="rounded-full border border-white/15 bg-white/5 px-3 py-1.5 text-xs font-medium text-red-100">
+                            {periodType === 'all' ? 'All report periods' : `${periodType.charAt(0).toUpperCase()}${periodType.slice(1)} focus`}
+                        </div>
+                    </div>
+                    <p className="mt-4 max-w-3xl text-sm leading-6 text-slate-200">{analytics.leadershipNarrative}</p>
                 </div>
 
                 <div className="mb-8 grid gap-4 md:grid-cols-2 xl:grid-cols-4">

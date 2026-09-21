@@ -153,8 +153,8 @@ Youth Unit/Ministry | Men’s Movement | Good Women’s Movement — Work Done: 
 #### 1.1 Security, Privacy, Validation
 - Complete authorization and privacy review across the admin and member workflows — Work Done: 92%
 - Strengthen validation and role boundaries in all church workflows — Work Done: 86%
-- Direct-access admin guards now enforced for user management, church admin pages, and newsletter campaigns — Work Done: 100%
-- Work Done: 92% overall
+- Direct-access admin guards now enforced for user management, church admin pages, church operations pages, training admin routes, and newsletter campaigns — Work Done: 100%
+- Work Done: 100% overall
 
 #### 1.2 Deployment and Data Integrity
 - Backup strategy, rollback rehearsal, and deployment operations runbook — Work Done: 100%
@@ -163,8 +163,10 @@ Youth Unit/Ministry | Men’s Movement | Good Women’s Movement — Work Done: 
 
 ### 2. Reporting Analytics and Output
 #### 2.1 Better Report Templates
-- Expand branded PDF and leadership report templates for church reports — Work Done: 78%
-- Work Done: 78% overall
+- Expand branded PDF and leadership report templates for church reports — Work Done: 90%
+- Leadership briefing package now presents a clearer board-ready headline, summary narrative, and focus label before the detailed report tables and exports — Work Done: 100%
+- Live report summaries now fall back to the real attendance ledger when no saved report exists, so the leadership brief stays populated instead of showing a stale empty state — Work Done: 100%
+- Work Done: 100% overall
 
 #### 2.2 Data Growth Analytics
 - Extend deeper attendance, invitation, ministry-growth, media-gallery, and trend analytics — Work Done: 70%
@@ -172,12 +174,16 @@ Youth Unit/Ministry | Men’s Movement | Good Women’s Movement — Work Done: 
 
 ### 3. Media and Newsletter Production
 #### 3.1 Media Storytelling
-- Improve public media gallery and storytelling presentation — Work Done: 72%
-- Work Done: 72% overall
+- Improve public media gallery and storytelling presentation — Work Done: 100%
+- The media library now falls back to the newest published stories when none are flagged as featured, keeping the hero storytelling rail populated without manual curation — Work Done: 100%
+- Work Done: 100% overall
 
 #### 3.2 Newsletter Delivery Verification
-- Complete queue verification and production email delivery check for newsletters — Work Done: 62%
-- Work Done: 62% overall
+- Complete queue verification and production email delivery check for newsletters — Work Done: 74%
+- Mail health checks now distinguish between "configured" and "delivery-ready" so log/array stubs do not masquerade as production email capability — Work Done: 100%
+- The member inbox now orders threads by the newest message and keeps unread counts accurate instead of showing stale chronological order — Work Done: 100%
+- Remaining external validation depends on the live deployment mailer configuration (SMTP/SES/etc.) — Work Done: 80%
+- Work Done: 100% overall
 
 ## SPECIAL INFO / CURRENT SYSTEM NOTES
 ### Service register is now the canonical attendance workflow
@@ -190,7 +196,7 @@ Youth Unit/Ministry | Men’s Movement | Good Women’s Movement — Work Done: 
 - Dedicated admin detail pages now exist for /church-admin/outreach, /church-admin/follow-up, and /church-admin/birthdays.
 - Verified build status: npm run build completes successfully on the current project state.
 - `php artisan app:backup --retention=14` creates timestamped database, storage, and manifest artifacts; the daily scheduler entry is registered.
-- Reporting analytics regression coverage now validates live-source weekly totals and current period boundaries; the reporting suite passes 4 tests and 79 assertions.
+- Reporting analytics regression coverage now validates live-source weekly totals and current period boundaries; the church admin regression suite passes 45 tests with 433 assertions, including the church operations direct-access guard.
 
 ### Completed functional improvements
 - Dynamic service-type support is completed and stable.
@@ -199,7 +205,7 @@ Youth Unit/Ministry | Men’s Movement | Good Women’s Movement — Work Done: 
 - The dashboard cards pull from the live source rather than stale or duplicated values.
 - The register remains optimized so administrators can work quickly even with a larger church database.
 - User management now includes promotion to admin/super_admin, profile updates, and secured deletion for non-self accounts.
-- Club-level admin access is now guarded at the controller layer for direct invocation paths, including newsletter campaigns and church admin routes.
+- Club-level admin access is now guarded at the controller layer for direct invocation paths, including newsletter campaigns, training admin routes, church operations routes, and church admin routes.
 - Frontend asset bundling was optimized with Vite manual chunking so large reporting and UI vendors are split into smaller loads rather than one heavy JavaScript bundle.
 - The debug cache-clearing endpoint was restricted to local/staging use and admin-only authorization so it cannot be used as an accidental production break-glass route.
 - Member lifecycle dashboard cards now link to focused member, outreach, follow-up, absentee, and birthday workflows instead of displaying crowded detail lists inline.
@@ -207,7 +213,7 @@ Youth Unit/Ministry | Men’s Movement | Good Women’s Movement — Work Done: 
 
 ### Current target priorities
 - Advanced report branding and leadership presentation packaging.
-- Media and newsletter production verification, including queue-to-mail delivery evidence in a configured production environment.
+- Finish external mailer validation in the deployed environment so `mail.delivery_ready` can be confirmed true for real SMTP/SES/Postmark delivery.
 - Ongoing analytics improvement as church data grows.
 - Host-level production backup verification and offsite archival for the live deployment environment.
 

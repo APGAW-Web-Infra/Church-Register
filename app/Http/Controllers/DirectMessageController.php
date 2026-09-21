@@ -22,14 +22,20 @@ class DirectMessageController extends Controller
         $threads = $messages
             ->groupBy(fn (DirectMessage $message) => $message->sender_id === $user->id ? $message->recipient_id : $message->sender_id)
             ->map(function ($thread) use ($user) {
-                $latest = $thread->first();
+                $latest = $thread->sortByDesc('created_at')->first();
                 $peer = $latest->sender_id === $user->id ? $latest->recipient : $latest->sender;
 
                 return [
                     'peer' => ['id' => $peer->id, 'name' => $peer->name],
                     'latest_message' => ['body' => $latest->body, 'created_at' => $latest->created_at],
+                    'sort_stamp' => $latest->created_at?->getTimestamp() ?? strtotime((string) $latest->created_at),
                     'unread_count' => $thread->where('recipient_id', $user->id)->whereNull('read_at')->count(),
                 ];
+            })
+            ->sortByDesc('sort_stamp')
+            ->map(function ($thread) {
+                unset($thread['sort_stamp']);
+                return $thread;
             })
             ->values();
 

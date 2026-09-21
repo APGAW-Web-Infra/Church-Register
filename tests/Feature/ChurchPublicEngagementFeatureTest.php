@@ -89,6 +89,39 @@ class ChurchPublicEngagementFeatureTest extends TestCase
             );
     }
 
+    public function test_public_media_gallery_uses_latest_published_stories_when_no_featured_items_are_marked(): void
+    {
+        ChurchMediaContent::create([
+            'content_type' => 'sermon',
+            'title' => 'Earliest Story',
+            'published_at' => '2026-09-01',
+            'status' => 'published',
+            'featured' => false,
+        ]);
+        ChurchMediaContent::create([
+            'content_type' => 'testimony',
+            'title' => 'Middle Story',
+            'published_at' => '2026-09-05',
+            'status' => 'published',
+            'featured' => false,
+        ]);
+        ChurchMediaContent::create([
+            'content_type' => 'interview',
+            'title' => 'Latest Story',
+            'published_at' => '2026-09-08',
+            'status' => 'published',
+            'featured' => false,
+        ]);
+
+        $this->get('/media')
+            ->assertOk()
+            ->assertInertia(fn ($page) => $page
+                ->has('featuredMedia', 3)
+                ->where('featuredMedia.0.title', 'Latest Story')
+                ->where('featuredMedia.2.title', 'Earliest Story')
+            );
+    }
+
     public function test_public_homepage_uses_live_church_summary_data(): void
     {
         /** @var User $user */

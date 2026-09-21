@@ -94,6 +94,7 @@ class ChurchNewsletterCampaignFeatureTest extends TestCase
 
     public function test_non_admin_cannot_access_campaign_management(): void
     {
+        /** @var User $member */
         $member = User::factory()->create();
 
         $this->actingAs($member)->get('/church-admin/newsletter-campaigns')->assertForbidden();

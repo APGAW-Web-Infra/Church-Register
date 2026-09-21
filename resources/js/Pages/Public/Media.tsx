@@ -68,7 +68,14 @@ export default function Media({
     flash?: { success?: string };
 }) {
     const [activeType, setActiveType] = useState('all');
-    const liveFeatured = (featuredMedia?.length ? featuredMedia : media.filter((item) => item.featured).length ? media.filter((item) => item.featured) : media)
+    const featuredPool = featuredMedia?.length ? featuredMedia : media.filter((item) => item.featured).length ? media.filter((item) => item.featured) : media;
+    const liveFeatured = featuredPool
+        .slice(0, 3)
+        .concat(
+            media
+                .filter((item) => !featuredPool.some((featuredItem) => featuredItem.id === item.id))
+                .slice(0, Math.max(0, 3 - featuredPool.slice(0, 3).length))
+        )
         .slice(0, 3);
     const pinnedIds = new Set(liveFeatured.map((item) => item.id));
     const filteredMedia = activeType === 'all'

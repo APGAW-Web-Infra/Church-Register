@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
 use Inertia\Inertia;
@@ -77,13 +78,13 @@ class UserController extends Controller
 
         // Statistics
         $statistics = [
-            'total_users' => User::count(),
-            'verified_users' => User::whereNotNull('email_verified_at')->count(),
-            'unverified_users' => User::whereNull('email_verified_at')->count(),
-            'today_users' => User::whereDate('created_at', today())->count(),
-            'pending_users' => User::where('registration_status', 'pending')->count(),
-            'suspended_users' => User::where('registration_status', 'suspended')->count(),
-            'total_roles' => Role::count(),
+            'total_users' => DB::table('users')->count(),
+            'verified_users' => DB::table('users')->whereNotNull('email_verified_at')->count(),
+            'unverified_users' => DB::table('users')->whereNull('email_verified_at')->count(),
+            'today_users' => DB::table('users')->whereDate('created_at', today())->count(),
+            'pending_users' => DB::table('users')->where('registration_status', 'pending')->count(),
+            'suspended_users' => DB::table('users')->where('registration_status', 'suspended')->count(),
+            'total_roles' => DB::table('roles')->count(),
         ];
 
         // Filter options
@@ -250,7 +251,7 @@ class UserController extends Controller
             return back()->withErrors(['error' => 'You cannot delete your own account.']);
         }
 
-        $user->delete();
+        $user->forceDelete();
 
         return redirect()->route('users.index')
             ->with('success', 'User deleted successfully!');

@@ -389,7 +389,7 @@ export default function CoursesPage(): JSX.Element {
                 </div>
               ) : (
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-                      {enrolledList.map(en => <EnrolledCourseCard key={en.id} enrollment={en} />)}
+                      {enrolledList.map((enrollmentItem) => <EnrolledCourseCard key={enrollmentItem.id} enrollment={enrollmentItem} />)}
                     </div>
                   )}
             </div>
@@ -424,8 +424,8 @@ export default function CoursesPage(): JSX.Element {
                     </div>
                   ) : (
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-                      {completedList.map(en => (
-                        <CompletedCourseCard key={en.id} enrollment={en} />
+                      {completedList.map((enrollmentItem) => (
+                        <CompletedCourseCard key={enrollmentItem.id} enrollment={enrollmentItem} />
                       ))}
                     </div>
                   )}

@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Http\Controllers\AdminTrainingController;
 use App\Http\Controllers\ChurchAdminController;
 use App\Http\Controllers\UserController;
 use App\Models\ChurchPrayerRequest;
@@ -87,10 +88,41 @@ class ChurchAdminDashboardTest extends TestCase
 
     public function test_regular_members_cannot_access_lifecycle_admin_pages(): void
     {
+        /** @var User $user */
         $user = User::factory()->create(['email' => 'member@example.com']);
 
         foreach (['/church-admin/outreach', '/church-admin/follow-up', '/church-admin/birthdays'] as $path) {
             $this->actingAs($user)->get($path)->assertForbidden();
+        }
+    }
+
+    public function test_admin_training_controller_requires_admin_role_for_direct_access(): void
+    {
+        $member = User::factory()->create(['email' => 'member@example.com']);
+
+        $request = Request::create('/admin/training', 'GET');
+        $request->setUserResolver(fn () => $member);
+
+        try {
+            app(AdminTrainingController::class)->index();
+            $this->fail('Expected admin training access to be denied for non-admins.');
+        } catch (\Symfony\Component\HttpKernel\Exception\HttpException $exception) {
+            $this->assertSame(403, $exception->getStatusCode());
+        }
+    }
+
+    public function test_church_operations_controller_requires_admin_role_for_direct_access(): void
+    {
+        $member = User::factory()->create(['email' => 'member@example.com']);
+
+        $request = Request::create('/church-admin/reports', 'GET');
+        $request->setUserResolver(fn () => $member);
+
+        try {
+            app(\App\Http\Controllers\ChurchOperationsController::class)->reports($request);
+            $this->fail('Expected church operations access to be denied for non-admins.');
+        } catch (\Symfony\Component\HttpKernel\Exception\HttpException $exception) {
+            $this->assertSame(403, $exception->getStatusCode());
         }
     }
 
@@ -558,6 +590,7 @@ class ChurchAdminDashboardTest extends TestCase
             ->assertJsonPath('scheduler.configured', true)
             ->assertJsonPath('mail.driver', $mailDriver)
             ->assertJsonPath('mail.configured', true)
+            ->assertJsonPath('mail.delivery_ready', false)
             ->assertJsonPath('app.env', 'testing');
     }
 

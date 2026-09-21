@@ -25,6 +25,7 @@ class AdminTrainingController extends Controller
      */
     public function index()
     {
+        $this->authorizeAdmin();
         $courses = Course::with(['courseCategory', 'skillType', 'instructor'])
             ->withCount('enrollments')
             ->latest()
@@ -51,6 +52,8 @@ class AdminTrainingController extends Controller
      */
     public function create()
     {
+        $this->authorizeAdmin();
+
         $categories = CourseCategory::active()->ordered()->get();
         $skillTypes = SkillType::active()->ordered()->get();
         $instructors = User::query()
@@ -534,6 +537,8 @@ private function buildCurriculumFromSections(array $sections): array
      */
     public function edit(Course $course)
     {
+        $this->authorizeAdmin();
+
         $course->load(['sections.lectures', 'courseCategory', 'skillType', 'instructor']);
 
         // Process lectures to include parsed slides/documents
@@ -580,6 +585,8 @@ private function buildCurriculumFromSections(array $sections): array
      */
     public function destroy(Course $course)
     {
+        $this->authorizeAdmin(request());
+
         try {
             // Check if course has enrollments
             if ($course->enrollments()->exists()) {
@@ -634,6 +641,8 @@ private function buildCurriculumFromSections(array $sections): array
      */
     public function bulkUpdateStatus(Request $request)
     {
+        $this->authorizeAdmin($request);
+
         $validated = $request->validate([
             'course_ids' => 'required|array',
             'course_ids.*' => 'exists:courses,id',
@@ -652,6 +661,8 @@ private function buildCurriculumFromSections(array $sections): array
      */
     public function analytics(Course $course)
     {
+        $this->authorizeAdmin(request());
+
         $analytics = [
             'total_enrollments' => $course->enrollments()->count(),
             'active_students' => $course->enrollments()->whereIn('status', ['not_started', 'in_progress'])->count(),
@@ -664,6 +675,13 @@ private function buildCurriculumFromSections(array $sections): array
         ];
 
         return response()->json($analytics);
+    }
+
+    private function authorizeAdmin(?Request $request = null): void
+    {
+        $user = ($request ?? request())->user();
+
+        abort_unless($user && $user->hasRole(['super_admin', 'admin']), 403, 'Unauthorized access to the training admin area.');
     }
 
 }

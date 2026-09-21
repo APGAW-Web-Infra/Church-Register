@@ -24,19 +24,11 @@ export default defineConfig({
                         return 'reporting-vendor';
                     }
 
-                    if (id.includes('react') || id.includes('@inertiajs') || id.includes('scheduler')) {
-                        return 'react-vendor';
-                    }
-
-                    if (id.includes('lucide-react') || id.includes('clsx')) {
-                        return 'ui-vendor';
-                    }
-
                     if (id.includes('chart') || id.includes('d3') || id.includes('recharts')) {
                         return 'charting-vendor';
                     }
 
-                    return 'vendor';
+                    return undefined;
                 },
             },
         },

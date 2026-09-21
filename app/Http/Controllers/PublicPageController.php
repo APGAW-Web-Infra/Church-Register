@@ -820,10 +820,25 @@ class PublicPageController extends Controller
             ->orderByDesc('published_at')
             ->get();
 
+        $featuredMedia = $media->where('featured', true)->values();
+
+        if ($featuredMedia->count() < 3) {
+            $usedIds = $featuredMedia->pluck('id');
+            $fallbackMedia = $media
+                ->reject(fn ($item) => $usedIds->contains($item->id))
+                ->take(3 - $featuredMedia->count());
+
+            $featuredMedia = $featuredMedia->merge($fallbackMedia)->values();
+        }
+
+        if ($featuredMedia->isEmpty()) {
+            $featuredMedia = $media->take(3)->values();
+        }
+
         return Inertia::render('Public/Media', [
             'laravelVersion' => Application::VERSION,
             'media' => $media,
-            'featuredMedia' => $media->where('featured', true)->take(3),
+            'featuredMedia' => $featuredMedia,
         ]);
     }
 

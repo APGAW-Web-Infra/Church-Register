@@ -13,6 +13,7 @@ Route::get('/health', function () {
     $queueEnabled = false;
     $schedulerConfigured = false;
     $mailConfigured = false;
+    $mailDeliveryReady = false;
 
     try {
         DB::connection()->getPdo();
@@ -45,8 +46,10 @@ Route::get('/health', function () {
     try {
         $mailDriver = config('mail.default');
         $mailConfigured = is_string($mailDriver) && $mailDriver !== '';
+        $mailDeliveryReady = $mailConfigured && ! in_array(strtolower((string) $mailDriver), ['log', 'array'], true);
     } catch (\Throwable $exception) {
         $mailConfigured = false;
+        $mailDeliveryReady = false;
     }
 
     $overallHealthy = $databaseConnected && $cacheConnected && $queueEnabled && $schedulerConfigured && $mailConfigured;
@@ -65,6 +68,7 @@ Route::get('/health', function () {
         ],
         'mail' => [
             'configured' => $mailConfigured,
+            'delivery_ready' => $mailDeliveryReady,
             'driver' => config('mail.default'),
         ],
         'scheduler' => [

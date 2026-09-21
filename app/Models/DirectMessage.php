@@ -14,6 +14,8 @@ class DirectMessage extends Model
         'recipient_id',
         'body',
         'read_at',
+        'created_at',
+        'updated_at',
     ];
 
     protected function casts(): array

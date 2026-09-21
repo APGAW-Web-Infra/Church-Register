@@ -27,12 +27,26 @@ use App\Models\SmallGroupMeeting;
 use App\Notifications\ContactMessageResolved;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 
 class ChurchOperationsController extends Controller
 {
+    private function authorizeAdmin(?Request $request = null): void
+    {
+        $user = $request?->user();
+
+        if (!$user && Auth::check()) {
+            $user = Auth::user();
+        }
+
+        abort_unless($user && $user->hasRole(['super_admin', 'admin']), 403, 'Unauthorized access to church operations.');
+    }
+
     public function ministries(Request $request)
     {
+        $this->authorizeAdmin($request);
+
         $ministries = ChurchMinistry::query()
             ->orderByDesc('is_active')
             ->orderBy('name')
@@ -48,6 +62,8 @@ class ChurchOperationsController extends Controller
 
     public function smallGroups(Request $request)
     {
+        $this->authorizeAdmin($request);
+
         return Inertia::render('Church/SmallGroupManagement', [
             'groups' => SmallGroup::query()
                 ->withCount(['memberships as active_member_count' => fn ($query) => $query->where('status', 'active')])
@@ -62,6 +78,8 @@ class ChurchOperationsController extends Controller
 
     public function storeSmallGroup(Request $request)
     {
+        $this->authorizeAdmin($request);
+
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
@@ -83,6 +101,8 @@ class ChurchOperationsController extends Controller
 
     public function storeSmallGroupMeeting(Request $request)
     {
+        $this->authorizeAdmin($request);
+
         $validated = $request->validate([
             'small_group_id' => ['required', 'exists:small_groups,id'],
             'title' => ['required', 'string', 'max:255'],
@@ -105,6 +125,8 @@ class ChurchOperationsController extends Controller
 
     public function storeSmallGroupAttendance(Request $request)
     {
+        $this->authorizeAdmin($request);
+
         $validated = $request->validate([
             'small_group_meeting_id' => ['required', 'exists:small_group_meetings,id'],
             'small_group_membership_id' => ['required', 'exists:small_group_memberships,id'],
@@ -133,6 +155,8 @@ class ChurchOperationsController extends Controller
 
     public function storeMinistry(Request $request)
     {
+        $this->authorizeAdmin($request);
+
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'description' => ['required', 'string'],
@@ -152,6 +176,8 @@ class ChurchOperationsController extends Controller
 
     public function churchUnits(Request $request)
     {
+        $this->authorizeAdmin($request);
+
         $units = ChurchUnit::query()
             ->with(['leaders', 'members'])
             ->orderBy('category')
@@ -168,6 +194,8 @@ class ChurchOperationsController extends Controller
 
     public function storeChurchUnit(Request $request)
     {
+        $this->authorizeAdmin($request);
+
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'category' => ['required', 'string', 'max:255'],
@@ -202,6 +230,8 @@ class ChurchOperationsController extends Controller
 
     public function storeUnitLeader(Request $request, ChurchUnit $unit)
     {
+        $this->authorizeAdmin($request);
+
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'role' => ['nullable', 'string', 'max:255'],
@@ -220,6 +250,8 @@ class ChurchOperationsController extends Controller
 
     public function storeUnitMember(Request $request, ChurchUnit $unit)
     {
+        $this->authorizeAdmin($request);
+
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'role' => ['nullable', 'string', 'max:255'],
@@ -238,6 +270,8 @@ class ChurchOperationsController extends Controller
 
     public function leadership(Request $request)
     {
+        $this->authorizeAdmin($request);
+
         $leadership = ChurchLeadershipProfile::with('ministry')
             ->orderBy('name')
             ->get();
@@ -255,6 +289,8 @@ class ChurchOperationsController extends Controller
 
     public function storeLeadership(Request $request)
     {
+        $this->authorizeAdmin($request);
+
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'title' => ['required', 'string', 'max:255'],
@@ -280,6 +316,8 @@ class ChurchOperationsController extends Controller
 
     public function storeReport(Request $request)
     {
+        $this->authorizeAdmin($request);
+
         $validated = $request->validate([
             'period_type' => ['required', 'in:weekly,monthly,quarterly,annual'],
             'title' => ['required', 'string', 'max:255'],
@@ -324,6 +362,8 @@ class ChurchOperationsController extends Controller
 
     public function reports(Request $request)
     {
+        $this->authorizeAdmin($request);
+
         $periodType = $request->validate([
             'period_type' => ['nullable', 'in:all,weekly,monthly,quarterly,annual'],
         ])['period_type'] ?? 'all';
@@ -541,6 +581,8 @@ class ChurchOperationsController extends Controller
 
     public function prayerRequests(Request $request)
     {
+        $this->authorizeAdmin($request);
+
         $prayerRequests = ChurchPrayerRequest::query()
             ->latest()
             ->get();
@@ -555,6 +597,8 @@ class ChurchOperationsController extends Controller
 
     public function announcements(Request $request)
     {
+        $this->authorizeAdmin($request);
+
         return Inertia::render('Church/AnnouncementsBoard', [
             'announcements' => ChurchAnnouncement::query()->latest('published_at')->latest()->get(),
             'flash' => ['success' => $request->session()->get('success')],
@@ -563,6 +607,8 @@ class ChurchOperationsController extends Controller
 
     public function storeAnnouncement(Request $request)
     {
+        $this->authorizeAdmin($request);
+
         $validated = $request->validate([
             'title' => ['required', 'string', 'max:255'],
             'body' => ['required', 'string'],
@@ -577,6 +623,8 @@ class ChurchOperationsController extends Controller
 
     public function updatePrayerRequestStatus(Request $request, ChurchPrayerRequest $prayerRequest)
     {
+        $this->authorizeAdmin($request);
+
         $validated = $request->validate([
             'status' => ['required', 'in:pending,prayed,closed'],
         ]);
@@ -651,6 +699,8 @@ class ChurchOperationsController extends Controller
 
     public function scorecards(Request $request)
     {
+        $this->authorizeAdmin($request);
+
         $scorecards = ChurchScorecard::query()
             ->orderByDesc('report_date')
             ->get();
@@ -702,6 +752,8 @@ class ChurchOperationsController extends Controller
 
     public function storeScorecard(Request $request)
     {
+        $this->authorizeAdmin($request);
+
         $validated = $request->validate([
             'period_type' => ['required', 'in:weekly,monthly,quarterly,annual'],
             'title' => ['required', 'string', 'max:255'],
@@ -720,6 +772,8 @@ class ChurchOperationsController extends Controller
 
     public function absentees(Request $request)
     {
+        $this->authorizeAdmin($request);
+
         $validated = $request->validate([
             'period' => ['nullable', 'in:week,month'],
             'date' => ['nullable', 'date'],
@@ -823,6 +877,8 @@ class ChurchOperationsController extends Controller
 
     public function storeAbsentee(Request $request)
     {
+        $this->authorizeAdmin($request);
+
         return redirect()->route('church-admin.absentees')->with(
             'success',
             'Absentee records are generated automatically from the service register. No manual absentee entry is required.'
@@ -831,6 +887,8 @@ class ChurchOperationsController extends Controller
 
     public function workersMeetings(Request $request)
     {
+        $this->authorizeAdmin($request);
+
         $meetings = ChurchWorkersMeeting::query()
             ->orderByDesc('meeting_date')
             ->get();
@@ -845,6 +903,8 @@ class ChurchOperationsController extends Controller
 
     public function storeWorkersMeeting(Request $request)
     {
+        $this->authorizeAdmin($request);
+
         $validated = $request->validate([
             'topic' => ['required', 'string', 'max:255'],
             'meeting_date' => ['required', 'date'],
@@ -866,6 +926,8 @@ class ChurchOperationsController extends Controller
 
     public function media(Request $request)
     {
+        $this->authorizeAdmin($request);
+
         $media = ChurchMediaContent::query()
             ->orderByDesc('published_at')
             ->get();
@@ -880,6 +942,8 @@ class ChurchOperationsController extends Controller
 
     public function messages(Request $request)
     {
+        $this->authorizeAdmin($request);
+
         return Inertia::render('Church/MessagesBoard', [
             'messages' => ChurchContactMessage::query()->latest()->get(),
             'flash' => [
@@ -890,6 +954,8 @@ class ChurchOperationsController extends Controller
 
     public function updateMessageStatus(Request $request, ChurchContactMessage $message)
     {
+        $this->authorizeAdmin($request);
+
         $validated = $request->validate([
             'status' => ['required', 'in:open,resolved'],
         ]);
@@ -913,6 +979,8 @@ class ChurchOperationsController extends Controller
 
     public function events(Request $request)
     {
+        $this->authorizeAdmin($request);
+
         $events = Event::query()
             ->with('registrations.user')
             ->orderBy('start_date')
@@ -943,6 +1011,8 @@ class ChurchOperationsController extends Controller
 
     public function storeEvent(Request $request)
     {
+        $this->authorizeAdmin($request);
+
         $validated = $request->validate($this->eventValidationRules());
 
         Event::create([
@@ -956,6 +1026,8 @@ class ChurchOperationsController extends Controller
 
     public function updateEvent(Request $request, Event $event)
     {
+        $this->authorizeAdmin($request);
+
         $validated = $request->validate($this->eventValidationRules());
 
         $event->update([
@@ -984,6 +1056,8 @@ class ChurchOperationsController extends Controller
 
     public function storeMedia(Request $request)
     {
+        $this->authorizeAdmin($request);
+
         $validated = $request->validate([
             'content_type' => ['required', 'in:interview,sermon,testimony,highlight,music'],
             'title' => ['required', 'string', 'max:255'],
