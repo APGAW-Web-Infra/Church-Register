@@ -106,8 +106,9 @@ class ProfileController extends Controller
     {
         abort_unless(
             $request->user()->id === $memberProfile->user_id
-                || $request->user()->hasRole('super_admin|admin'),
-            403
+                || $request->user()->hasRole(['super_admin', 'admin']),
+            403,
+            'Unauthorized access to the requested profile photo.'
         );
 
         abort_unless($memberProfile->avatar_path && Storage::disk('local')->exists($memberProfile->avatar_path), 404);

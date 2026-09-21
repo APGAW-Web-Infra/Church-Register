@@ -149,6 +149,94 @@ export default function ReportsDashboard({
             })),
     };
 
+    const exportLeadershipBriefPdf = () => {
+        const brief = new jsPDF({ unit: 'pt', format: 'a4' });
+        const briefWidth = brief.internal.pageSize.getWidth();
+        const briefHeight = brief.internal.pageSize.getHeight();
+        const briefScope = periodType === 'all' ? 'All report periods' : `${periodType.charAt(0).toUpperCase()}${periodType.slice(1)} report`;
+
+        brief.setFillColor(11, 18, 32);
+        brief.rect(0, 0, briefWidth, 120, 'F');
+        brief.setTextColor(255, 255, 255);
+        brief.setFont('helvetica', 'bold');
+        brief.setFontSize(22);
+        brief.text('APGA Worldwide', 42, 34);
+        brief.setFont('helvetica', 'normal');
+        brief.setFontSize(11);
+        brief.text('Leadership Brief', 42, 56);
+        brief.setTextColor(211, 219, 227);
+        brief.text(`${briefScope} • ${new Date().toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}`, 42, 76);
+
+        const metricCards = [
+            ['Attendance', analytics.totalAttendance],
+            ['First timers', analytics.totalFirstTimers],
+            ['New members', analytics.totalNewMembers],
+            ['Prayer requests', analytics.totalPrayerRequests],
+        ];
+
+        let cardX = 42;
+        let cardY = 138;
+        metricCards.forEach(([label, value]) => {
+            brief.setFillColor(248, 250, 252);
+            brief.roundedRect(cardX, cardY, 118, 64, 12, 12, 'F');
+            brief.setDrawColor(226, 232, 240);
+            brief.roundedRect(cardX, cardY, 118, 64, 12, 12, 'S');
+            brief.setTextColor(100, 116, 139);
+            brief.setFont('helvetica', 'normal');
+            brief.setFontSize(8);
+            brief.text(String(label).toUpperCase(), cardX + 12, cardY + 20);
+            brief.setTextColor(15, 23, 42);
+            brief.setFont('helvetica', 'bold');
+            brief.setFontSize(18);
+            brief.text(String(value), cardX + 12, cardY + 42);
+            cardX += 132;
+        });
+
+        brief.setTextColor(15, 23, 42);
+        brief.setFont('helvetica', 'bold');
+        brief.setFontSize(13);
+        brief.text('Executive summary', 42, 236);
+        brief.setFont('helvetica', 'normal');
+        brief.setFontSize(11);
+        const executiveSummary = brief.splitTextToSize(analytics.leadershipSummary || 'No report summary available yet.', 500);
+        brief.text(executiveSummary, 42, 252);
+
+        brief.setFont('helvetica', 'bold');
+        brief.setFontSize(12);
+        brief.text('Leadership insight', 42, 330);
+        brief.setFont('helvetica', 'normal');
+        const insightLines = brief.splitTextToSize(analytics.leadershipInsight || 'No insight available yet.', 500);
+        brief.text(insightLines, 42, 346);
+
+        brief.setFillColor(245, 247, 250);
+        brief.roundedRect(42, 382, briefWidth - 84, 122, 12, 12, 'F');
+        brief.setDrawColor(226, 232, 240);
+        brief.roundedRect(42, 382, briefWidth - 84, 122, 12, 12, 'S');
+        brief.setFont('helvetica', 'bold');
+        brief.setFontSize(12);
+        brief.text('Report detail highlights', 58, 408);
+        brief.setFont('helvetica', 'normal');
+        brief.setFontSize(10);
+
+        const detailRows = (reports.length > 0 ? reports : (liveReport ? [liveReport] : [])).slice(0, 4);
+        detailRows.forEach((report, index) => {
+            const summaryLine = `${report.title} • ${report.period_type.toUpperCase()} • ${report.report_date}`;
+            const lines = brief.splitTextToSize(summaryLine, 420);
+            brief.text(lines, 58, 428 + (index * 24));
+            brief.text(`Attendance ${report.attendance_count} • First timers ${report.first_timers_count} • Prayer requests ${report.prayer_requests_count}`, 58, 440 + (index * 24));
+        });
+
+        brief.setDrawColor(218, 221, 226);
+        brief.line(42, briefHeight - 38, briefWidth - 42, briefHeight - 38);
+        brief.setTextColor(100, 116, 139);
+        brief.setFont('helvetica', 'normal');
+        brief.setFontSize(9);
+        brief.text('APGA Worldwide | Church Leadership and Stewardship', 42, briefHeight - 22);
+        brief.text(`Generated ${new Date().toLocaleString()}`, briefWidth - 120, briefHeight - 22, { align: 'right' });
+
+        brief.save('apga-worldwide-leadership-brief.pdf');
+    };
+
     const exportReportsPdf = () => {
         const pdf = new jsPDF({ unit: 'pt', format: 'a4' });
         const pageWidth = pdf.internal.pageSize.getWidth();
@@ -336,13 +424,22 @@ export default function ReportsDashboard({
                             <option value="annual">Annual</option>
                         </select>
                     </label>
-                    <button
-                        type="button"
-                        onClick={exportReportsPdf}
-                        className="rounded-full border border-red-200 bg-white px-5 py-2.5 text-sm font-semibold text-red-700 shadow-sm transition hover:bg-red-50"
-                    >
-                        Export Leadership PDF
-                    </button>
+                    <div className="flex flex-wrap gap-3">
+                        <button
+                            type="button"
+                            onClick={exportLeadershipBriefPdf}
+                            className="rounded-full border border-slate-200 bg-slate-50 px-5 py-2.5 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-100"
+                        >
+                            Export Brief PDF
+                        </button>
+                        <button
+                            type="button"
+                            onClick={exportReportsPdf}
+                            className="rounded-full border border-red-200 bg-white px-5 py-2.5 text-sm font-semibold text-red-700 shadow-sm transition hover:bg-red-50"
+                        >
+                            Export Leadership PDF
+                        </button>
+                    </div>
                 </div>
 
                 <div className="mb-8 grid gap-4 md:grid-cols-2 xl:grid-cols-4">

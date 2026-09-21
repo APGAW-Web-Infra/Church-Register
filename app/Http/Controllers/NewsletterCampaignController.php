@@ -82,6 +82,8 @@ class NewsletterCampaignController extends Controller
 
     private function authorizeAdmin(?Request $request = null): void
     {
-        abort_unless(($request ?? request())->user()->hasRole('super_admin|admin'), 403);
+        $user = ($request ?? request())->user();
+
+        abort_unless($user && $user->hasRole(['super_admin', 'admin']), 403, 'Unauthorized access to newsletter campaigns.');
     }
 }

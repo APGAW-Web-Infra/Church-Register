@@ -2,6 +2,8 @@
 
 namespace Tests\Feature;
 
+use App\Http\Controllers\ChurchAdminController;
+use App\Http\Controllers\UserController;
 use App\Models\ChurchPrayerRequest;
 use App\Models\ChurchContactMessage;
 use App\Models\AttendanceRecord;
@@ -9,6 +11,7 @@ use App\Models\MemberProfile;
 use App\Models\User;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Schema;
 use Tests\TestCase;
 
@@ -542,8 +545,10 @@ class ChurchAdminDashboardTest extends TestCase
             ->assertForbidden();
     }
 
-    public function test_health_endpoint_reports_app_database_cache_queue_and_scheduler_status(): void
+    public function test_health_endpoint_reports_app_database_cache_queue_scheduler_and_mail_status(): void
     {
+        $mailDriver = config('mail.default');
+
         $this->getJson('/api/health')
             ->assertOk()
             ->assertJsonPath('status', 'ok')
@@ -551,6 +556,8 @@ class ChurchAdminDashboardTest extends TestCase
             ->assertJsonPath('cache.connected', true)
             ->assertJsonPath('queue.enabled', true)
             ->assertJsonPath('scheduler.configured', true)
+            ->assertJsonPath('mail.driver', $mailDriver)
+            ->assertJsonPath('mail.configured', true)
             ->assertJsonPath('app.env', 'testing');
     }
 
@@ -1236,6 +1243,42 @@ class ChurchAdminDashboardTest extends TestCase
         $this->actingAs($member)
             ->get('/church-admin')
             ->assertForbidden();
+    }
+
+    public function test_user_management_controller_requires_admin_role_for_direct_access(): void
+    {
+        /** @var User $member */
+        $member = User::factory()->create([
+            'email' => 'member@example.com',
+        ]);
+
+        $request = Request::create('/users', 'GET');
+        $request->setUserResolver(fn () => $member);
+
+        try {
+            app(UserController::class)->index($request);
+            $this->fail('Expected user management access to be denied for non-admins.');
+        } catch (\Symfony\Component\HttpKernel\Exception\HttpException $exception) {
+            $this->assertSame(403, $exception->getStatusCode());
+        }
+    }
+
+    public function test_church_admin_controller_requires_admin_role_for_direct_access(): void
+    {
+        /** @var User $member */
+        $member = User::factory()->create([
+            'email' => 'member@example.com',
+        ]);
+
+        $request = Request::create('/church-admin', 'GET');
+        $request->setUserResolver(fn () => $member);
+
+        try {
+            app(ChurchAdminController::class)->index($request);
+            $this->fail('Expected admin dashboard access to be denied for non-admins.');
+        } catch (\Symfony\Component\HttpKernel\Exception\HttpException $exception) {
+            $this->assertSame(403, $exception->getStatusCode());
+        }
     }
 
     public function test_church_admin_dashboard_lists_upcoming_birthdays(): void

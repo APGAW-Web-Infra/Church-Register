@@ -151,9 +151,10 @@ Youth Unit/Ministry | Men’s Movement | Good Women’s Movement — Work Done: 
 ## WHAT IS LEFT
 ### 1. Production Hardening
 #### 1.1 Security, Privacy, Validation
-- Complete authorization and privacy review across the admin and member workflows — Work Done: 79%
-- Strengthen validation and role boundaries in all church workflows — Work Done: 72%
-- Work Done: 77% overall
+- Complete authorization and privacy review across the admin and member workflows — Work Done: 92%
+- Strengthen validation and role boundaries in all church workflows — Work Done: 86%
+- Direct-access admin guards now enforced for user management, church admin pages, and newsletter campaigns — Work Done: 100%
+- Work Done: 92% overall
 
 #### 1.2 Deployment and Data Integrity
 - Backup strategy, rollback rehearsal, and deployment operations runbook — Work Done: 100%
@@ -198,12 +199,15 @@ Youth Unit/Ministry | Men’s Movement | Good Women’s Movement — Work Done: 
 - The dashboard cards pull from the live source rather than stale or duplicated values.
 - The register remains optimized so administrators can work quickly even with a larger church database.
 - User management now includes promotion to admin/super_admin, profile updates, and secured deletion for non-self accounts.
+- Club-level admin access is now guarded at the controller layer for direct invocation paths, including newsletter campaigns and church admin routes.
+- Frontend asset bundling was optimized with Vite manual chunking so large reporting and UI vendors are split into smaller loads rather than one heavy JavaScript bundle.
+- The debug cache-clearing endpoint was restricted to local/staging use and admin-only authorization so it cannot be used as an accidental production break-glass route.
 - Member lifecycle dashboard cards now link to focused member, outreach, follow-up, absentee, and birthday workflows instead of displaying crowded detail lists inline.
 - Public leadership now includes the vice-president portrait and a square senior-pastor placeholder until the final portrait asset is supplied.
 
 ### Current target priorities
 - Advanced report branding and leadership presentation packaging.
-- Media and newsletter production verification.
+- Media and newsletter production verification, including queue-to-mail delivery evidence in a configured production environment.
 - Ongoing analytics improvement as church data grows.
 - Host-level production backup verification and offsite archival for the live deployment environment.
 
@@ -216,6 +220,9 @@ Youth Unit/Ministry | Men’s Movement | Good Women’s Movement — Work Done: 
 - Dashboard UX and responsive layouts: 98%
 - Community and training: 88%
 - Production hardening and deployment: 100%
+- Admin direct-access authorization hardening: 100%
+- Frontend bundle optimization: 100%
+- Debug route hardening: 100%
 - Overall platform delivery: 96%
 
 ## NEXT TASKS TO COMPLETE

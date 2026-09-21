@@ -17,6 +17,8 @@ class ChurchAdminController extends Controller
 {
     public function index(Request $request)
     {
+        $this->authorizeAdmin($request);
+
         $userCount = User::query()->count('*');
         $memberCount = MemberProfile::count();
         $latestServiceDate = AttendanceRecord::query()->max('service_date');
@@ -225,6 +227,8 @@ class ChurchAdminController extends Controller
 
     public function users(Request $request)
     {
+        $this->authorizeAdmin($request);
+
         $query = User::query()->with('roles')->orderByDesc('created_at');
 
         if ($request->filled('search')) {
@@ -277,6 +281,8 @@ class ChurchAdminController extends Controller
 
     public function outreach(Request $request)
     {
+        $this->authorizeAdmin($request);
+
         $tasks = collect();
         $incomplete = MemberProfile::query()->with('user')->where('is_active', true)->whereNull('profile_completed_at')->get();
 
@@ -297,6 +303,8 @@ class ChurchAdminController extends Controller
 
     public function followUp(Request $request)
     {
+        $this->authorizeAdmin($request);
+
         $members = MemberProfile::query()->with('user')->where(function ($query) {
             $query->where('is_active', false)
                 ->orWhere(function ($firstTimer) {
@@ -317,6 +325,8 @@ class ChurchAdminController extends Controller
 
     public function birthdays(Request $request)
     {
+        $this->authorizeAdmin($request);
+
         $birthdays = MemberProfile::query()
             ->whereNotNull('date_of_birth')
             ->get()
@@ -336,6 +346,8 @@ class ChurchAdminController extends Controller
 
     public function updateUser(Request $request, User $user)
     {
+        $this->authorizeAdmin($request);
+
         $validated = $request->validate([
             'name' => ['nullable', 'string', 'max:255'],
             'email' => ['nullable', 'email', 'max:255', 'unique:users,email,' . $user->id],
@@ -387,6 +399,8 @@ class ChurchAdminController extends Controller
 
     public function deleteUser(Request $request, User $user)
     {
+        $this->authorizeAdmin($request);
+
         if ($user->id === $request->user()->id) {
             return redirect()->route('church-admin.users')->with('error', 'You cannot delete your own account.');
         }
@@ -399,6 +413,8 @@ class ChurchAdminController extends Controller
 
     public function promoteUser(Request $request, User $user)
     {
+        $this->authorizeAdmin($request);
+
         $validated = $request->validate([
             'role' => ['required', 'in:admin,super_admin,individual'],
         ]);
@@ -416,6 +432,8 @@ class ChurchAdminController extends Controller
 
     public function members(Request $request)
     {
+        $this->authorizeAdmin($request);
+
         $query = MemberProfile::with('user')->latest();
 
         if ($request->filled('search')) {
@@ -488,6 +506,8 @@ class ChurchAdminController extends Controller
 
     public function storeMember(Request $request)
     {
+        $this->authorizeAdmin($request);
+
         $validated = $request->validate([
             'first_name' => ['required', 'string', 'max:255'],
             'last_name' => ['required', 'string', 'max:255'],
@@ -521,6 +541,8 @@ class ChurchAdminController extends Controller
 
     public function serviceRegister(Request $request)
     {
+        $this->authorizeAdmin($request);
+
         $validated = $request->validate([
             'month' => ['nullable', 'date_format:Y-m'],
             'service_type' => ['nullable', 'in:main_service,sunday_school,workers_meeting,prayer_meeting'],
@@ -598,6 +620,8 @@ class ChurchAdminController extends Controller
 
     public function storeServiceRegisterAttendance(Request $request)
     {
+        $this->authorizeAdmin($request);
+
         $validated = $request->validate([
             'member_profile_id' => ['required', 'exists:member_profiles,id'],
             'service_type' => ['nullable', 'in:main_service,sunday_school,workers_meeting,prayer_meeting'],
@@ -653,6 +677,11 @@ class ChurchAdminController extends Controller
         }
 
         return redirect()->route('church-admin.service-register', $redirectParameters)->with('success', 'Service register updated successfully.');
+    }
+
+    private function authorizeAdmin(Request $request): void
+    {
+        abort_unless($request->user()?->hasRole(['super_admin', 'admin']), 403, 'Unauthorized access to the church admin area.');
     }
 
     private function serviceTypeOptions(): array

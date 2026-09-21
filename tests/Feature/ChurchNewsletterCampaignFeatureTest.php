@@ -77,6 +77,21 @@ class ChurchNewsletterCampaignFeatureTest extends TestCase
         $this->assertDatabaseHas('church_newsletter_campaigns', ['id' => $campaign->id, 'status' => 'sent', 'sent_count' => 1]);
     }
 
+    public function test_newsletter_controller_requires_admin_role_for_direct_access(): void
+    {
+        $member = User::factory()->create(['email' => 'member@example.com']);
+
+        $request = \Illuminate\Http\Request::create('/church-admin/newsletter-campaigns', 'GET');
+        $request->setUserResolver(fn () => $member);
+
+        try {
+            app(\App\Http\Controllers\NewsletterCampaignController::class)->index();
+            $this->fail('Expected newsletter campaign access to be denied for non-admins.');
+        } catch (\Symfony\Component\HttpKernel\Exception\HttpException $exception) {
+            $this->assertSame(403, $exception->getStatusCode());
+        }
+    }
+
     public function test_non_admin_cannot_access_campaign_management(): void
     {
         $member = User::factory()->create();

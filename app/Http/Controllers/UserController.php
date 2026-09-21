@@ -14,6 +14,8 @@ class UserController extends Controller
 {
     public function index(Request $request)
     {
+        $this->authorizeAdmin($request);
+
         $query = User::with(['roles']);
 
         // Search
@@ -109,8 +111,10 @@ class UserController extends Controller
         ]);
     }
 
-    public function create()
+    public function create(Request $request)
     {
+        $this->authorizeAdmin($request);
+
         return Inertia::render('Admin/Users/Create', [
             'roles' => Role::all(),
         ]);
@@ -118,6 +122,8 @@ class UserController extends Controller
 
     public function store(Request $request)
     {
+        $this->authorizeAdmin($request);
+
         $validated = $request->validate([
             'name' => 'required|string|max:255|unique:users',
             'email' => 'required|email|unique:users',
@@ -151,8 +157,10 @@ class UserController extends Controller
             ->with('success', 'User created successfully!');
     }
 
-    public function show(User $user)
+    public function show(Request $request, User $user)
     {
+        $this->authorizeAdmin($request);
+
         $user->load(['roles', 'permissions']);
 
         return Inertia::render('Admin/Users/Show', [
@@ -160,8 +168,10 @@ class UserController extends Controller
         ]);
     }
 
-    public function edit(User $user)
+    public function edit(Request $request, User $user)
     {
+        $this->authorizeAdmin($request);
+
         $user->load('roles');
 
         return Inertia::render('Admin/Users/Edit', [
@@ -190,6 +200,8 @@ class UserController extends Controller
 
  public function update(Request $request, User $user)
 {
+    $this->authorizeAdmin($request);
+
     $validated = $request->validate([
         'name' => ['required', 'string', 'max:255', Rule::unique('users')->ignore($user->id)],
         'email' => ['required', 'email', Rule::unique('users')->ignore($user->id)],
@@ -230,8 +242,10 @@ class UserController extends Controller
         ->with('success', 'User updated successfully!');
 }
 
-    public function destroy(User $user)
+    public function destroy(Request $request, User $user)
     {
+        $this->authorizeAdmin($request);
+
         if ($user->id === Auth::user()->id) {
             return back()->withErrors(['error' => 'You cannot delete your own account.']);
         }
@@ -244,6 +258,8 @@ class UserController extends Controller
 
     public function export(Request $request)
     {
+        $this->authorizeAdmin($request);
+
         // Implementation for CSV export
         $query = User::with(['roles']);
 
@@ -278,5 +294,10 @@ class UserController extends Controller
         return response($csv)
             ->header('Content-Type', 'text/csv')
             ->header('Content-Disposition', 'attachment; filename="users_' . date('Y-m-d') . '.csv"');
+    }
+
+    private function authorizeAdmin(Request $request): void
+    {
+        abort_unless($request->user()?->hasRole(['super_admin', 'admin']), 403, 'Unauthorized access to user management.');
     }
 }

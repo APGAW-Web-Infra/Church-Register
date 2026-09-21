@@ -248,14 +248,19 @@ Route::prefix('api')->group(function () {
     Route::get('/lgas', [LocationController::class, 'getLGAs'])->name('api.lgas');
 });
 
-// Debug route for cache clearing (remove after use)
+// Debug route for cache clearing - available only in local-like environments and only to admins.
 Route::get('/debug/clear-cache', function () {
-    if (Auth::check() && Auth::user()?->hasRole('super_admin|admin')) {
-        \Illuminate\Support\Facades\Artisan::call('route:clear');
-        \Illuminate\Support\Facades\Artisan::call('cache:clear');
-        return 'Routes and caches cleared successfully';
-    }
-    return 'Unauthorized';
-});
+    abort_unless(app()->environment(['local', 'staging']), 404, 'Debug route unavailable in this environment.');
+    abort_unless(Auth::check() && Auth::user()?->hasRole(['super_admin', 'admin']), 403, 'Unauthorized.');
+
+    \Illuminate\Support\Facades\Artisan::call('route:clear');
+    \Illuminate\Support\Facades\Artisan::call('cache:clear');
+
+    return response()->json([
+        'status' => 'success',
+        'message' => 'Routes and caches cleared successfully.',
+        'environment' => app()->environment(),
+    ]);
+})->name('debug.clear-cache');
 
 require __DIR__.'/auth.php';
