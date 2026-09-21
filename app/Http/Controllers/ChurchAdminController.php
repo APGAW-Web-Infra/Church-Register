@@ -317,12 +317,16 @@ class ChurchAdminController extends Controller
 
     public function birthdays(Request $request)
     {
-        $birthdays = MemberProfile::query()->whereNotNull('date_of_birth')->orderByRaw('MONTH(date_of_birth), DAY(date_of_birth)')->get()->map(fn ($member) => [
-            'id' => $member->id,
-            'name' => trim(($member->first_name ?? '') . ' ' . ($member->last_name ?? '')) ?: 'Member',
-            'department' => $member->department ?? 'Member',
-            'date_of_birth' => $member->date_of_birth->format('Y-m-d'),
-        ])->values()->all();
+        $birthdays = MemberProfile::query()
+            ->whereNotNull('date_of_birth')
+            ->get()
+            ->sortBy(fn ($member) => $member->date_of_birth->format('m-d'))
+            ->map(fn ($member) => [
+                'id' => $member->id,
+                'name' => trim(($member->first_name ?? '') . ' ' . ($member->last_name ?? '')) ?: 'Member',
+                'department' => $member->department ?? 'Member',
+                'date_of_birth' => $member->date_of_birth->format('Y-m-d'),
+            ])->values()->all();
 
         return Inertia::render('Church/BirthdaysBoard', [
             'birthdays' => $birthdays,

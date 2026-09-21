@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Models\ChurchPrayerRequest;
 use App\Models\ChurchContactMessage;
 use App\Models\AttendanceRecord;
+use App\Models\MemberProfile;
 use App\Models\User;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -29,6 +30,65 @@ class ChurchAdminDashboardTest extends TestCase
             ->get('/church-admin');
 
         $response->assertOk();
+    }
+
+    public function test_church_admin_lifecycle_detail_pages_expose_live_data(): void
+    {
+        $user = $this->admin();
+
+        MemberProfile::create([
+            'user_id' => $user->id,
+            'first_name' => 'Outreach',
+            'last_name' => 'Member',
+            'membership_status' => 'member',
+            'is_active' => true,
+            'profile_completed_at' => null,
+            'date_of_birth' => '1998-03-17',
+        ]);
+
+        MemberProfile::create([
+            'user_id' => $user->id,
+            'first_name' => 'First',
+            'last_name' => 'Timer',
+            'membership_status' => 'first_timer',
+            'is_active' => true,
+        ]);
+
+        $this->actingAs($user)
+            ->get('/church-admin/outreach')
+            ->assertOk()
+            ->assertInertia(fn ($page) => $page
+                ->component('Church/OutreachActions')
+                ->where('tasks.0.name', 'Outreach Member')
+                ->where('tasks.0.type', 'incomplete_onboarding')
+            );
+
+        $this->actingAs($user)
+            ->get('/church-admin/follow-up')
+            ->assertOk()
+            ->assertInertia(fn ($page) => $page
+                ->component('Church/FollowUpQueue')
+                ->where('members.0.name', 'First Timer')
+                ->where('members.0.type', 'first timer')
+            );
+
+        $this->actingAs($user)
+            ->get('/church-admin/birthdays')
+            ->assertOk()
+            ->assertInertia(fn ($page) => $page
+                ->component('Church/BirthdaysBoard')
+                ->where('birthdays.0.name', 'Outreach Member')
+                ->where('birthdays.0.date_of_birth', '1998-03-17')
+            );
+    }
+
+    public function test_regular_members_cannot_access_lifecycle_admin_pages(): void
+    {
+        $user = User::factory()->create(['email' => 'member@example.com']);
+
+        foreach (['/church-admin/outreach', '/church-admin/follow-up', '/church-admin/birthdays'] as $path) {
+            $this->actingAs($user)->get($path)->assertForbidden();
+        }
     }
 
     public function test_church_admin_dashboard_stats_only_count_qualifying_attendance_for_today(): void

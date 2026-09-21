@@ -700,6 +700,24 @@ class ChurchOperationsController extends Controller
         ]);
     }
 
+    public function storeScorecard(Request $request)
+    {
+        $validated = $request->validate([
+            'period_type' => ['required', 'in:weekly,monthly,quarterly,annual'],
+            'title' => ['required', 'string', 'max:255'],
+            'report_date' => ['required', 'date'],
+            'invitation_count' => ['required', 'integer', 'min:0'],
+            'new_visitors_count' => ['required', 'integer', 'min:0'],
+            'conversion_count' => ['required', 'integer', 'min:0'],
+            'score' => ['required', 'integer', 'min:0', 'max:100'],
+            'notes' => ['nullable', 'string'],
+        ]);
+
+        ChurchScorecard::create($validated);
+
+        return redirect()->route('church-admin.scorecards')->with('success', 'Scorecard saved successfully.');
+    }
+
     public function absentees(Request $request)
     {
         $validated = $request->validate([

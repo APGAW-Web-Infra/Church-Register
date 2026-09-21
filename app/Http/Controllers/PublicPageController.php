@@ -924,7 +924,7 @@ class PublicPageController extends Controller
 
     public function eventCalendar(Event $event)
     {
-        abort_unless(Event::upcoming()->whereKey($event->id)->exists(), 404);
+        abort_unless($event->status !== 'cancelled', 404);
 
         $escape = static fn (string $value): string => str_replace(["\\", ";", ",", "\r", "\n"], ["\\\\", "\\;", "\\,", '', '\\n'], $value);
         $formatDate = static fn ($date): string => $date->utc()->format('Ymd\\THis\\Z');

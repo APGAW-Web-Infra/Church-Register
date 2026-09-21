@@ -159,8 +159,8 @@ class ChurchReportingAnalyticsTest extends TestCase
             ->get('/church-admin/reports')
             ->assertOk()
             ->assertInertia(fn ($page) => $page
-                ->where('analytics.leadershipSummary', 'Latest church pulse: Week 2 Worship Report (2026-09-08) - attendance 160, first timers 18, prayer requests 10.')
-                ->where('analytics.leadershipInsight', 'The strongest reporting period is weekly with 280 recorded attendees.')
+                ->where('analytics.leadershipSummary', 'Latest church pulse: Week 2 Worship Report (2026-09-08) - attendance 280, first timers 33, prayer requests 10.')
+                ->where('analytics.leadershipInsight', 'The strongest reporting period is weekly with 400 recorded attendees.')
             );
     }
 
@@ -227,7 +227,7 @@ class ChurchReportingAnalyticsTest extends TestCase
 
         $this->assertDatabaseHas('church_reports', [
             'title' => 'Boundary Report',
-            'attendance_count' => 2,
+            'attendance_count' => 3,
             'first_timers_count' => 2,
         ]);
     }

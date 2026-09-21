@@ -102,6 +102,14 @@ php artisan queue:work --queue=default --sleep=3 --tries=3 --daemon
 
 Create automated backups for the database and uploaded content.
 
+The application now provides an executable backup command:
+
+```bash
+php artisan app:backup --retention=14
+```
+
+It writes a timestamped backup directory under `storage/app/private/backups` containing a database artifact, a `storage/app` ZIP archive, and a `manifest.json`. SQLite databases are copied directly; MySQL/MariaDB prefer `mysqldump` and fall back to a PDO SQL export when the binary is unavailable. The Laravel scheduler runs this command daily at 02:00 with fourteen backup directories retained.
+
 Recommended approach:
 - nightly database dump with retention of at least 7 to 30 days
 - daily backup copy to an offsite location or object storage
@@ -168,6 +176,8 @@ This is a dry-run rehearsal for the church operations team before any live produ
 Run the backup in a staging or mirrored environment first, then validate the artifact.
 
 ```bash
+php artisan app:backup --retention=14
+
 mysqldump --single-transaction --routines --events --triggers -u root -p apga_worldwide > backup_$(date +%F_%H%M%S).sql
 
 tar -czf storage_backup_$(date +%F_%H%M%S).tar.gz storage/app
@@ -179,6 +189,7 @@ Validation steps:
 - confirm the storage archive includes uploaded church content and attachments
 - verify the dump can open without corruption using `head` or a restore test in staging
 - confirm backup retention is configured for at least 7 to 30 days
+- confirm the application backup manifest records the database driver and artifact paths
 
 ### 6.2 Rollback rehearsal
 
