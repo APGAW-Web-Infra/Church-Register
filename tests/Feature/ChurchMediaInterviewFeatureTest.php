@@ -12,6 +12,7 @@ class ChurchMediaInterviewFeatureTest extends TestCase
 
     public function test_admin_can_record_interview_and_media_content(): void
     {
+        /** @var User $user */
         $user = User::factory()->create([
             'email' => 'crownpaysme19@gmail.com',
         ]);

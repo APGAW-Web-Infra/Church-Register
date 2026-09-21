@@ -458,14 +458,14 @@ export default function Welcome({
                     <div className="absolute bottom-6 left-1/3 h-96 w-96 rounded-full bg-blue-500/10 blur-3xl"></div>
 
                     <div className="relative z-10 mx-auto max-w-7xl px-6">
-                        <div className="mb-14 text-center">
-                            <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-fuchsia-500/40 bg-white/5 px-4 py-2 text-[10px] font-bold uppercase tracking-[0.38em] text-fuchsia-100 backdrop-blur-sm shadow-[0_0_30px_rgba(217,70,239,0.2)]">
-                                <span className="h-2 w-2 rounded-full bg-fuchsia-400 shadow-[0_0_12px_rgba(244,114,182,0.9)]"></span>
-                                Our Platform
+                        <div className="mx-auto mb-14 max-w-4xl text-center">
+                            <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-red-300/30 bg-white/5 px-4 py-2 text-[10px] font-bold uppercase tracking-[0.38em] text-red-100 backdrop-blur-sm shadow-[0_0_24px_rgba(239,68,68,0.12)]">
+                                <span className="h-2 w-2 rounded-full bg-red-400 shadow-[0_0_12px_rgba(248,113,113,0.9)]"></span>
+                                Our platform
                             </div>
-                            <h2 className="mb-5 text-4xl font-black tracking-[-0.06em] text-white md:text-6xl lg:text-7xl">
+                            <h2 className="mb-5 text-4xl font-black tracking-[-0.06em] text-white md:text-6xl lg:text-[5rem]">
                                 Built for a church
-                                <span className="block bg-gradient-to-r from-fuchsia-200 via-red-200 to-orange-200 bg-clip-text text-transparent">
+                                <span className="block bg-gradient-to-r from-[#f8d9d9] via-[#f4a7a7] to-[#f7c778] bg-clip-text text-transparent">
                                     that moves with purpose
                                 </span>
                             </h2>
@@ -474,82 +474,90 @@ export default function Welcome({
                             </p>
                         </div>
 
-                        <div className="grid gap-6 lg:grid-cols-12">
+                        <div className="grid gap-6 lg:grid-cols-3">
                             {[
                                 {
                                     title: "Worship & Prayer",
                                     href: route('prayer-requests'),
                                     description: "Create a vibrant rhythm of worship, prayer, and spiritual growth every week.",
                                     icon: "✝️",
-                                    accent: "from-rose-500/40 via-red-500/15 to-transparent",
-                                    glow: "shadow-[0_0_40px_rgba(244,63,94,0.18)]"
+                                    accent: "from-[#c74d68]/30 via-[#7f1d1d]/10 to-transparent",
+                                    border: "border-red-400/20",
+                                    glow: "shadow-[0_22px_60px_rgba(190,24,93,0.14)]"
                                 },
                                 {
                                     title: "Family & Discipleship",
                                     href: route('small-groups'),
                                     description: "Encourage meaningful discipleship with mentoring, teaching, and life-group connection.",
                                     icon: "🤝",
-                                    accent: "from-orange-400/40 via-amber-500/15 to-transparent",
-                                    glow: "shadow-[0_0_40px_rgba(251,146,60,0.16)]"
+                                    accent: "from-[#f59e0b]/25 via-[#9333ea]/10 to-transparent",
+                                    border: "border-orange-300/20",
+                                    glow: "shadow-[0_22px_60px_rgba(249,115,22,0.12)]"
                                 },
                                 {
                                     title: "Events & Outreach",
                                     href: route('events'),
                                     description: "Plan memorable gatherings, serve the city, and launch powerful ministry moments.",
                                     icon: "📅",
-                                    accent: "from-sky-500/40 via-blue-500/15 to-transparent",
-                                    glow: "shadow-[0_0_40px_rgba(59,130,246,0.18)]"
+                                    accent: "from-[#60a5fa]/25 via-[#3b82f6]/10 to-transparent",
+                                    border: "border-blue-300/20",
+                                    glow: "shadow-[0_22px_60px_rgba(59,130,246,0.12)]"
                                 },
                                 {
                                     title: "Member Care",
                                     href: route('contact'),
                                     description: "Keep every member supported through pastoral presence, prayer, and belonging.",
                                     icon: "👥",
-                                    accent: "from-violet-500/40 via-fuchsia-500/15 to-transparent",
-                                    glow: "shadow-[0_0_40px_rgba(168,85,247,0.18)]"
+                                    accent: "from-[#a78bfa]/25 via-[#8b5cf6]/10 to-transparent",
+                                    border: "border-violet-300/20",
+                                    glow: "shadow-[0_22px_60px_rgba(168,85,247,0.12)]",
+                                    offset: "lg:translate-y-8"
                                 },
                                 {
                                     title: "Prayer Requests",
                                     href: route('prayer-requests'),
                                     description: "Lift every need before God and surround people with care, hope, and support.",
                                     icon: "🙏",
-                                    accent: "from-pink-500/40 via-rose-500/15 to-transparent",
-                                    glow: "shadow-[0_0_40px_rgba(236,72,153,0.18)]"
+                                    accent: "from-[#f472b6]/25 via-[#ec4899]/10 to-transparent",
+                                    border: "border-pink-300/20",
+                                    glow: "shadow-[0_22px_60px_rgba(236,72,153,0.12)]",
+                                    offset: "lg:translate-y-10"
                                 },
                                 {
                                     title: "Church Insight",
                                     href: route('church-admin.index'),
                                     description: "Track attendance and growth with tools built for healthy, strategic ministry.",
                                     icon: "📊",
-                                    accent: "from-emerald-500/40 via-teal-500/15 to-transparent",
-                                    glow: "shadow-[0_0_40px_rgba(16,185,129,0.18)]"
+                                    accent: "from-[#34d399]/25 via-[#14b8a6]/10 to-transparent",
+                                    border: "border-emerald-300/20",
+                                    glow: "shadow-[0_22px_60px_rgba(16,185,129,0.12)]"
                                 }
                             ].map((feature, index) => (
                                 <Link
                                     key={index}
                                     href={feature.href}
                                     className={[
-                                        "group relative block overflow-hidden rounded-[30px] border border-white/10 bg-slate-900/80 p-7 backdrop-blur-md transition-all duration-500 hover:-translate-y-2 hover:border-red-400/60 hover:shadow-[0_28px_80px_rgba(30,41,59,0.8)] focus:outline-none focus:ring-2 focus:ring-red-300/80 focus:ring-offset-2 focus:ring-offset-slate-950",
-                                        index % 2 === 0 ? "lg:col-span-4" : "lg:col-span-4",
-                                        index === 3 || index === 4 ? "lg:translate-y-8" : "",
-                                        feature.glow
+                                        "group relative block overflow-hidden rounded-[28px] border bg-[#120d1a]/80 p-6 backdrop-blur-md transition-all duration-500 hover:-translate-y-2 hover:border-red-300/50 hover:bg-[#17111d]/95 focus:outline-none focus:ring-2 focus:ring-red-300/70 focus:ring-offset-2 focus:ring-offset-slate-950",
+                                        feature.border,
+                                        feature.glow,
+                                        feature.offset ?? "",
                                     ].join(" ")}
                                 >
                                     <div className={`absolute inset-0 bg-gradient-to-br ${feature.accent}`} />
-                                    <div className="absolute -right-6 -top-6 h-28 w-28 rounded-full bg-white/5 blur-2xl"></div>
-                                    <div className="absolute inset-x-5 bottom-0 h-px bg-gradient-to-r from-transparent via-white/30 to-transparent"></div>
+                                    <div className="absolute -left-8 -top-8 h-28 w-28 rounded-full bg-white/5 blur-3xl"></div>
+                                    <div className="absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-white/30 to-transparent"></div>
 
                                     <div className="relative z-10">
                                         <div className="mb-6 flex items-center justify-between gap-3">
-                                            <div className="flex h-16 w-16 items-center justify-center rounded-2xl border border-white/10 bg-slate-950/80 text-3xl shadow-inner shadow-white/5 transition-all duration-500 group-hover:scale-110 group-hover:shadow-[0_0_16px_rgba(244,114,182,0.35)]">
+                                            <div className="flex h-16 w-16 items-center justify-center rounded-2xl border border-white/10 bg-[#0a0f1d]/85 text-3xl shadow-[inset_0_1px_0_rgba(255,255,255,0.1)] transition-transform duration-500 group-hover:scale-110">
                                                 {feature.icon}
                                             </div>
-                                            <span className="text-[10px] font-bold uppercase tracking-[0.35em] text-slate-400">
+                                            <span className="text-[10px] font-bold uppercase tracking-[0.38em] text-slate-300/80">
                                                 0{index + 1}
                                             </span>
                                         </div>
 
-                                        <h3 className="mb-3 text-2xl font-bold tracking-tight text-white md:text-[1.8rem]">
+                                        <h3 className="mb-3 text-2xl font-bold tracking-[-0.04em] text-white md:text-[1.9rem]">
                                             {feature.title}
                                         </h3>
                                         <p className="text-base leading-relaxed text-slate-200/90">
@@ -624,19 +632,19 @@ export default function Welcome({
                                 <div className="relative z-10 flex h-full flex-col justify-between">
                                     <div>
                                         <div className="flex items-start justify-between"><span className="font-serif text-7xl leading-none text-red-300/70">“</span><span className="font-mono text-xs tracking-[0.3em] text-red-300/70">01 / 03</span></div>
-                                        <p className="mt-6 max-w-2xl text-2xl font-medium leading-relaxed text-white md:text-3xl">The church community here is so welcoming and supportive. The attendance tracking system has really helped me stay connected with church activities.</p>
+                                        <p className="mt-6 max-w-2xl text-2xl font-medium leading-relaxed text-white md:text-3xl">This church feels like home. Every Sunday, I am reminded that I am loved, welcomed, and valued. The warmth of the people and the spirit of togetherness make me want to serve with joy.</p>
                                     </div>
                                     <div className="mt-12 flex items-center gap-4 border-t border-white/10 pt-5">
-                                        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-red-300 to-rose-600 text-sm font-bold text-white shadow-[0_0_24px_rgba(248,113,113,0.25)]">JD</div>
-                                        <div><p className="font-semibold text-white">John Doe</p><p className="text-sm text-slate-400">Church Member</p></div>
+                                        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-red-300 to-rose-600 text-sm font-bold text-white shadow-[0_0_24px_rgba(248,113,113,0.25)]">AT</div>
+                                        <div><p className="font-semibold text-white">Adebayo Tolulope</p><p className="text-sm text-slate-400">Welfare Member</p></div>
                                     </div>
                                 </div>
                             </div>
 
                             <div className="grid gap-4">
                                 {[
-                                    { quote: 'I love how easy it is to invite friends and track our progress. The invitation league has really motivated us to evangelize more.', name: 'Sarah Smith', title: 'Small Group Leader', initials: 'SS', code: '02 / 03', accent: 'from-orange-300 to-red-500' },
-                                    { quote: 'The platform makes church management so much easier. We can focus on spiritual growth instead of administrative headaches.', name: 'Pastor Michael', title: 'Church Leadership', initials: 'PM', code: '03 / 03', accent: 'from-fuchsia-300 to-rose-600' },
+                                    { quote: 'I love how engaging the church website is. It keeps us informed, helps us stay connected, and makes it so easy to join fellowship and prayer opportunities from anywhere.', name: 'Akinyemi Oluwatosin', title: 'Youth Ministry Member', initials: 'AO', code: '02 / 03', accent: 'from-orange-300 to-red-500' },
+                                    { quote: 'The platform is beautiful, easy to use, and deeply encouraging. It helps our members stay connected, discover events, and feel part of the church family in a very real way.', name: 'Morenikeji Faith', title: 'Media Team Member', initials: 'MF', code: '03 / 03', accent: 'from-fuchsia-300 to-rose-600' },
                                 ].map((testimonial) => (
                                     <div key={testimonial.name} className="apga-voices-rise apga-voices-delay group relative overflow-hidden border border-white/10 bg-white/[0.045] p-6 transition duration-500 hover:-translate-y-1 hover:border-red-300/50 hover:bg-white/[0.08]">
                                         <div className="flex items-start justify-between"><span className="font-serif text-5xl leading-none text-red-300/60">“</span><span className="font-mono text-xs tracking-[0.25em] text-slate-500">{testimonial.code}</span></div>

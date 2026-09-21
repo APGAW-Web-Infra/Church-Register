@@ -12,6 +12,7 @@ class ChurchOperationsExpansionTest extends TestCase
 
     public function test_service_register_generates_absentees_automatically_for_unmarked_members(): void
     {
+        /** @var User $user */
         $user = User::factory()->create([
             'email' => 'crownpaysme19@gmail.com',
         ]);
