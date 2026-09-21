@@ -12,19 +12,28 @@ class AttendanceApiController extends Controller
 {
     public function stats(): JsonResponse
     {
-        $qualifying = AttendanceRecord::query()->whereIn('status', ['present', 'late']);
+        $countUnique = function ($query) {
+            $records = $query->whereIn('status', ['present', 'late'])->get();
+            $memberIds = $records->pluck('member_profile_id')->filter()->unique()->count();
+
+            return $memberIds > 0
+                ? $memberIds
+                : $records->pluck('user_id')->filter()->unique()->count();
+        };
+
+        $qualifying = AttendanceRecord::query();
 
         return response()->json([
             'data' => [
-                'total' => (clone $qualifying)->count(),
-                'present' => (clone $qualifying)->where('status', 'present')->count(),
-                'late' => (clone $qualifying)->where('status', 'late')->count(),
-                'first_timers' => (clone $qualifying)->where('first_timer', true)->count(),
+                'total' => $countUnique((clone $qualifying)),
+                'present' => $countUnique((clone $qualifying)->where('status', 'present')),
+                'late' => $countUnique((clone $qualifying)->where('status', 'late')),
+                'first_timers' => $countUnique((clone $qualifying)->where('first_timer', true)),
                 'by_service' => [
-                    'main_service' => (clone $qualifying)->where('service_type', 'main_service')->count(),
-                    'sunday_school' => (clone $qualifying)->where('service_type', 'sunday_school')->count(),
-                    'workers_meeting' => (clone $qualifying)->where('service_type', 'workers_meeting')->count(),
-                    'prayer_meeting' => (clone $qualifying)->where('service_type', 'prayer_meeting')->count(),
+                    'main_service' => $countUnique((clone $qualifying)->where('service_type', 'main_service')),
+                    'sunday_school' => $countUnique((clone $qualifying)->where('service_type', 'sunday_school')),
+                    'workers_meeting' => $countUnique((clone $qualifying)->where('service_type', 'workers_meeting')),
+                    'prayer_meeting' => $countUnique((clone $qualifying)->where('service_type', 'prayer_meeting')),
                 ],
             ],
         ]);

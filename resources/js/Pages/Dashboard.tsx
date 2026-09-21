@@ -122,11 +122,12 @@ export default function Dashboard({
 
     const summaryCards = [
         {
-            title: 'Attendance',
+            title: 'This Month Attendance',
             value: (churchSummary?.attendance_total ?? 0).toLocaleString(),
-            note: 'Recorded attendance entries',
+            note: 'Unique members present or late this month',
             tone: 'from-red-500 to-red-600',
             route: null,
+            tooltip: 'Counts unique members only once per month. A person marked present or late is counted once, even if also marked as a first timer.',
         },
         {
             title: 'Prayer Requests',
@@ -234,7 +235,7 @@ export default function Dashboard({
 
                     <div id="overview" className="grid grid-cols-2 scroll-mt-36 gap-2 md:grid-cols-2 xl:grid-cols-4">
                         {summaryCards.map((card) => (
-                            <div key={card.title} className="rounded-2xl border border-slate-200 bg-white p-3 shadow-[0_8px_22px_rgba(15,23,42,0.04)]">
+                            <div key={card.title} className="rounded-2xl border border-slate-200 bg-white p-3 shadow-[0_8px_22px_rgba(15,23,42,0.04)]" title={card.tooltip ?? undefined}>
                                 <div className={`mb-2 h-1.5 rounded-full bg-gradient-to-r ${card.tone}`} />
                                 <p className="text-xs font-medium text-slate-500">{card.title}</p>
                                 <div className="mt-2 flex items-end justify-between gap-3">
@@ -310,13 +311,13 @@ export default function Dashboard({
                             </div>
 
                             <div className="grid gap-2 md:grid-cols-2">
-                                <div className="rounded-2xl border border-red-100 bg-red-50 p-3">
+                                <div className="rounded-2xl border border-red-100 bg-red-50 p-3" title="Counts unique members once for the latest Sunday service. A person marked present or late is counted once, even if also marked as a first timer.">
                                     <div className="flex items-center justify-between text-sm text-red-700">
-                                        <span className="font-semibold">Attendance</span>
+                                        <span className="font-semibold">Latest Service Attendance</span>
                                         <span>{churchHealth.attendance_change === null ? 'No prior data' : `${churchHealth.attendance_change >= 0 ? '+' : ''}${churchHealth.attendance_change}% vs last week`}</span>
                                     </div>
                                     <div className="mt-4 text-3xl font-bold text-slate-900">{churchHealth.attendance.toLocaleString()}</div>
-                                    <p className="mt-2 text-sm text-slate-600">Members present in worship</p>
+                                    <p className="mt-2 text-sm text-slate-600">Distinct members present at the latest service</p>
                                 </div>
 
                                 <div className="rounded-2xl border border-amber-100 bg-amber-50 p-3">

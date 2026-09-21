@@ -26,9 +26,30 @@ Route::get('/', function () {
     $userTableExists = \Illuminate\Support\Facades\Schema::hasTable('users');
     $attendanceTableExists = \Illuminate\Support\Facades\Schema::hasTable('attendance_records');
 
+    $countDistinctQualifiedMembers = function ($query) {
+        $records = $query->whereIn('status', ['present', 'late'])->get();
+
+        if ($records->isEmpty()) {
+            return 0;
+        }
+
+        $memberIds = $records->pluck('member_profile_id')->filter()->unique()->count();
+
+        return $memberIds > 0
+            ? $memberIds
+            : $records->pluck('user_id')->filter()->unique()->count();
+    };
+
     $churchSummary = [
         'member_count' => $userTableExists ? \App\Models\User::query()->count('*') : 0,
-        'attendance_total' => $attendanceTableExists ? \App\Models\AttendanceRecord::count() : 0,
+        'attendance_total' => $attendanceTableExists
+            ? $countDistinctQualifiedMembers(
+                \App\Models\AttendanceRecord::query()
+                    ->where('service_type', 'main_service')
+                    ->whereMonth('service_date', now()->month)
+                    ->whereYear('service_date', now()->year)
+            )
+            : 0,
         'prayer_requests' => \Illuminate\Support\Facades\Schema::hasTable('church_prayer_requests')
             ? \App\Models\ChurchPrayerRequest::whereIn('status', ['pending', 'prayed'])->count()
             : 0,

@@ -590,6 +590,15 @@ class ChurchAdminController extends Controller
         $latestServiceDate = AttendanceRecord::max('service_date');
         $latestServiceDateOnly = $latestServiceDate ? Carbon::parse($latestServiceDate)->format('Y-m-d') : null;
 
+        $countDistinctQualified = function ($recordQuery) {
+            $records = $recordQuery->whereIn('status', ['present', 'late'])->get();
+            $memberIds = $records->pluck('member_profile_id')->filter()->unique()->count();
+
+            return $memberIds > 0
+                ? $memberIds
+                : $records->pluck('user_id')->filter()->unique()->count();
+        };
+
         return Inertia::render('Church/ServiceRegister', [
             'month' => $selectedMonth->format('Y-m'),
             'monthLabel' => $selectedMonth->format('F Y'),
@@ -599,15 +608,15 @@ class ChurchAdminController extends Controller
             'sundays' => $serviceDates,
             'rows' => $rows,
             'attendanceStats' => [
-                'total' => AttendanceRecord::count(),
-                'present_or_late' => AttendanceRecord::whereIn('status', ['present', 'late'])->count(),
-                'first_timers' => AttendanceRecord::where('first_timer', true)->whereIn('status', ['present', 'late'])->count(),
-                'sunday_school' => AttendanceRecord::where('service_type', 'sunday_school')->whereIn('status', ['present', 'late'])->count(),
-                'main_service' => AttendanceRecord::where('service_type', 'main_service')->whereIn('status', ['present', 'late'])->count(),
-                'service_type_total' => AttendanceRecord::where('service_type', $serviceType)->whereIn('status', ['present', 'late'])->count(),
+                'total' => $countDistinctQualified(AttendanceRecord::query()->whereBetween('service_date', [$selectedMonth->copy()->startOfMonth(), $selectedMonth->copy()->endOfMonth()])),
+                'present_or_late' => $countDistinctQualified(AttendanceRecord::query()->whereBetween('service_date', [$selectedMonth->copy()->startOfMonth(), $selectedMonth->copy()->endOfMonth()])),
+                'first_timers' => $countDistinctQualified(AttendanceRecord::query()->where('first_timer', true)->whereBetween('service_date', [$selectedMonth->copy()->startOfMonth(), $selectedMonth->copy()->endOfMonth()])),
+                'sunday_school' => $countDistinctQualified(AttendanceRecord::query()->where('service_type', 'sunday_school')->whereBetween('service_date', [$selectedMonth->copy()->startOfMonth(), $selectedMonth->copy()->endOfMonth()])),
+                'main_service' => $countDistinctQualified(AttendanceRecord::query()->where('service_type', 'main_service')->whereBetween('service_date', [$selectedMonth->copy()->startOfMonth(), $selectedMonth->copy()->endOfMonth()])),
+                'service_type_total' => $countDistinctQualified(AttendanceRecord::query()->where('service_type', $serviceType)->whereBetween('service_date', [$selectedMonth->copy()->startOfMonth(), $selectedMonth->copy()->endOfMonth()])),
                 'latest_service_date' => $latestServiceDateOnly,
                 'latest_service_total' => $latestServiceDateOnly
-                    ? AttendanceRecord::whereDate('service_date', $latestServiceDateOnly)->whereIn('status', ['present', 'late'])->count()
+                    ? $countDistinctQualified(AttendanceRecord::query()->whereDate('service_date', $latestServiceDateOnly)->where('service_type', $serviceType))
                     : 0,
             ],
             'members' => $memberProfiles->map(fn (MemberProfile $member) => [

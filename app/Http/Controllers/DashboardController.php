@@ -338,7 +338,16 @@ class DashboardController extends Controller
 
     private function getChurchSummary(): array
     {
-        $attendanceTotal = \App\Models\AttendanceRecord::count();
+        $monthStart = now()->startOfMonth();
+        $monthEnd = now()->endOfMonth();
+
+        $attendanceTotal = Schema::hasTable('attendance_records')
+            ? $this->countDistinctQualifiedAttendees(
+                \App\Models\AttendanceRecord::query()
+                    ->where('service_type', 'main_service')
+                    ->whereBetween('service_date', [$monthStart, $monthEnd])
+            )
+            : 0;
 
         $prayerRequests = 0;
         if (\Illuminate\Support\Facades\Schema::hasTable('church_prayer_requests')) {
@@ -360,12 +369,40 @@ class DashboardController extends Controller
 
     private function getChurchHealth(): array
     {
-        $attendance = Schema::hasTable('attendance_records')
-            ? \App\Models\AttendanceRecord::query()
-                ->where('service_type', 'main_service')
-                ->whereIn('status', ['present', 'late'])
-                ->count()
+        $latestServiceDate = Schema::hasTable('attendance_records')
+            ? \App\Models\AttendanceRecord::query()->max('service_date')
+            : null;
+
+        $attendance = Schema::hasTable('attendance_records') && $latestServiceDate
+            ? $this->countDistinctQualifiedAttendees(
+                \App\Models\AttendanceRecord::query()
+                    ->where('service_type', 'main_service')
+                    ->whereDate('service_date', $latestServiceDate)
+            )
             : 0;
+
+        $currentWeekAttendance = Schema::hasTable('attendance_records')
+            ? $this->countDistinctQualifiedAttendees(
+                \App\Models\AttendanceRecord::query()
+                    ->where('service_type', 'main_service')
+                    ->whereDate('service_date', '>=', now()->startOfWeek()->toDateString())
+                    ->whereDate('service_date', '<=', now()->endOfWeek()->toDateString())
+            )
+            : 0;
+
+        $previousWeekAttendance = Schema::hasTable('attendance_records')
+            ? $this->countDistinctQualifiedAttendees(
+                \App\Models\AttendanceRecord::query()
+                    ->where('service_type', 'main_service')
+                    ->whereDate('service_date', '>=', now()->subWeek()->startOfWeek()->toDateString())
+                    ->whereDate('service_date', '<=', now()->subWeek()->endOfWeek()->toDateString())
+            )
+            : 0;
+
+        $attendanceChange = $previousWeekAttendance > 0
+            ? round((($currentWeekAttendance - $previousWeekAttendance) / $previousWeekAttendance) * 100)
+            : null;
+
         $prayerRequests = Schema::hasTable('church_prayer_requests')
             ? ChurchPrayerRequest::query()->whereIn('status', ['pending', 'prayed'])->count()
             : 0;
@@ -374,25 +411,6 @@ class DashboardController extends Controller
             : 0;
         $nextEvent = Schema::hasTable('events')
             ? Event::query()->where('start_date', '>=', now())->orderBy('start_date')->first()
-            : null;
-        $currentWeekAttendance = Schema::hasTable('attendance_records')
-            ? \App\Models\AttendanceRecord::query()
-                ->where('service_type', 'main_service')
-                ->whereIn('status', ['present', 'late'])
-                ->whereDate('service_date', '>=', now()->startOfWeek()->toDateString())
-                ->whereDate('service_date', '<=', now()->endOfWeek()->toDateString())
-                ->count()
-            : 0;
-        $previousWeekAttendance = Schema::hasTable('attendance_records')
-            ? \App\Models\AttendanceRecord::query()
-                ->where('service_type', 'main_service')
-                ->whereIn('status', ['present', 'late'])
-                ->whereDate('service_date', '>=', now()->subWeek()->startOfWeek()->toDateString())
-                ->whereDate('service_date', '<=', now()->subWeek()->endOfWeek()->toDateString())
-                ->count()
-            : 0;
-        $attendanceChange = $previousWeekAttendance > 0
-            ? round((($currentWeekAttendance - $previousWeekAttendance) / $previousWeekAttendance) * 100)
             : null;
 
         return [
@@ -403,6 +421,22 @@ class DashboardController extends Controller
             'next_service' => $nextEvent?->title,
             'next_service_date' => $nextEvent?->start_date?->format('l'),
         ];
+    }
+
+    private function countDistinctQualifiedAttendees($query): int
+    {
+        $records = $query->whereIn('status', ['present', 'late'])->get();
+
+        if ($records->isEmpty()) {
+            return 0;
+        }
+
+        $memberIds = $records->pluck('member_profile_id')->filter()->unique()->count();
+        if ($memberIds > 0) {
+            return $memberIds;
+        }
+
+        return $records->pluck('user_id')->filter()->unique()->count();
     }
 
     private function getChurchLeadership(): array

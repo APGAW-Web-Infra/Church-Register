@@ -234,7 +234,7 @@ export default function Welcome({
                         <div className="grid gap-px overflow-hidden border border-white/10 bg-white/10 sm:grid-cols-2 xl:grid-cols-4">
                             {[
                                 { label: 'Total Members', value: animatedStats[0], index: '01', accent: 'from-red-300 to-rose-600', detail: 'People in the family' },
-                                { label: 'Sunday Attendance', value: animatedStats[1], index: '02', accent: 'from-orange-200 to-red-500', detail: 'Gathered in worship' },
+                                { label: 'This Month Attendance', value: animatedStats[1], index: '02', accent: 'from-orange-200 to-red-500', detail: 'Unique members at worship' },
                                 { label: 'Upcoming Events', value: animatedStats[2], index: '03', accent: 'from-fuchsia-200 to-red-500', detail: 'Moments on the calendar' },
                                 { label: 'Small Groups', value: animatedStats[3], index: '04', accent: 'from-amber-200 to-orange-500', detail: 'Circles growing together' },
                             ].map((stat) => (
