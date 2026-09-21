@@ -174,14 +174,14 @@ export default function Dashboard({
         <AuthenticatedLayout>
             <Head title="APGA Worldwide Dashboard" />
 
-            <div className="min-h-screen bg-[#f8f4ee] text-slate-800">
-                <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
-                    <div className="mb-6 overflow-hidden rounded-3xl border border-red-200 bg-gradient-to-r from-red-700 via-red-600 to-rose-700 p-6 text-white shadow-lg shadow-red-900/20">
-                        <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
+            <div className="min-h-screen bg-[#f4f1ed] text-slate-800">
+                <div className="mx-auto w-full max-w-[1600px] px-3 py-3 sm:px-5 lg:px-8">
+                    <div className="mb-3 overflow-hidden rounded-[24px] border border-slate-700 bg-slate-950 p-4 text-white shadow-[0_18px_45px_rgba(15,23,42,0.16)]">
+                        <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
                             <div>
-                                <p className="text-xs font-semibold uppercase tracking-[0.35em] text-red-100">APGA Worldwide</p>
-                                <h1 className="mt-3 text-3xl font-bold sm:text-4xl">Church Dashboard</h1>
-                                <p className="mt-2 max-w-2xl text-sm text-red-50 sm:text-base">
+                                <p className="text-xs font-semibold uppercase tracking-[0.35em] text-red-300">APGA Worldwide</p>
+                                <h1 className="mt-1 text-2xl font-bold sm:text-3xl">Church Dashboard</h1>
+                                <p className="mt-2 max-w-2xl text-sm text-slate-300 sm:text-base">
                                     Welcome back, {user.name}. Your ministry operations, attendance, prayer support, and member engagement are all in one place.
                                 </p>
                             </div>
@@ -189,20 +189,20 @@ export default function Dashboard({
                             <div className="flex flex-wrap items-center gap-3">
                                 <Link
                                     href={route('community')}
-                                    className="rounded-full border border-white/30 bg-white/10 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-white/20"
+                                    className="rounded-full border border-white/20 bg-white/10 px-4 py-2 text-sm font-semibold text-white transition hover:bg-white/20"
                                 >
                                     View Community
                                 </Link>
                                 <Link
                                     href={route('training.dashboard')}
-                                    className="rounded-full bg-white px-5 py-2.5 text-sm font-semibold text-red-700 transition hover:bg-red-50"
+                                    className="rounded-full bg-white px-4 py-2 text-sm font-semibold text-slate-900 transition hover:bg-red-50"
                                 >
                                     Word Ministry
                                 </Link>
                                 {isAdminUser && (
                                     <Link
                                         href={route('church-admin.index')}
-                                        className="rounded-full border-2 border-white bg-white px-5 py-2.5 text-sm font-bold text-red-700 shadow-lg shadow-red-900/20 transition hover:bg-red-50"
+                                        className="rounded-full border border-red-300 bg-red-600 px-4 py-2 text-sm font-bold text-white shadow-lg shadow-red-900/20 transition hover:bg-red-500"
                                     >
                                         Admin Panel
                                     </Link>
@@ -211,7 +211,7 @@ export default function Dashboard({
                         </div>
                     </div>
 
-                    <div className="mb-6 flex flex-wrap gap-2 rounded-2xl border border-red-200 bg-white p-2 shadow-sm">
+                    <div className="mb-3 flex flex-wrap gap-1 rounded-2xl border border-slate-200 bg-white p-1 shadow-sm">
                         {navItems.map((item) => (
                             <button
                                 key={item.id}
@@ -221,7 +221,7 @@ export default function Dashboard({
                                     document.getElementById(item.id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
                                 }}
                                 aria-current={activeSection === item.id ? 'page' : undefined}
-                                className={`rounded-xl px-4 py-2 text-sm font-semibold transition ${
+                                className={`rounded-xl px-3 py-1 text-xs font-semibold transition ${
                                     activeSection === item.id
                                         ? 'bg-red-600 text-white shadow-sm'
                                         : 'text-slate-600 hover:bg-red-50 hover:text-red-700'
@@ -232,13 +232,13 @@ export default function Dashboard({
                         ))}
                     </div>
 
-                    <div id="overview" className="grid scroll-mt-36 gap-4 md:grid-cols-2 xl:grid-cols-4">
+                    <div id="overview" className="grid grid-cols-2 scroll-mt-36 gap-2 md:grid-cols-2 xl:grid-cols-4">
                         {summaryCards.map((card) => (
-                            <div key={card.title} className="rounded-2xl border border-red-100 bg-white p-4 shadow-sm">
-                                <div className={`mb-4 h-2.5 rounded-full bg-gradient-to-r ${card.tone}`} />
-                                <p className="text-sm font-medium text-slate-500">{card.title}</p>
-                                <div className="mt-3 flex items-end justify-between gap-4">
-                                    <span className="text-3xl font-bold text-slate-900">{card.value}</span>
+                            <div key={card.title} className="rounded-2xl border border-slate-200 bg-white p-3 shadow-[0_8px_22px_rgba(15,23,42,0.04)]">
+                                <div className={`mb-2 h-1.5 rounded-full bg-gradient-to-r ${card.tone}`} />
+                                <p className="text-xs font-medium text-slate-500">{card.title}</p>
+                                <div className="mt-2 flex items-end justify-between gap-3">
+                                    <span className="text-2xl font-bold text-slate-900">{card.value}</span>
                                     {card.route && (
                                         <Link
                                             href={route(card.route)}
@@ -255,15 +255,15 @@ export default function Dashboard({
                         ))}
                     </div>
 
-                    <section className="mt-6 rounded-3xl border border-red-200 bg-white p-4 shadow-sm">
-                        <div className="flex flex-wrap items-start justify-between gap-4">
+                    <section className="mt-3 h-fit rounded-[22px] border border-slate-200 bg-white p-3 shadow-[0_10px_28px_rgba(15,23,42,0.04)]">
+                        <div className="flex flex-wrap items-start justify-between gap-3">
                             <div className="min-w-0">
                                 <p className="text-[11px] font-black uppercase tracking-[0.30em] text-red-600">Invitation league</p>
-                                <h2 className="mt-2 text-2xl font-bold text-slate-900">Invite someone to APGA</h2>
+                                <h2 className="mt-1 text-lg font-bold text-slate-900">Invite someone to APGA</h2>
                                 <p className="mt-2 max-w-2xl text-sm text-slate-600">An invitation counts only after registration through your link and qualifying Sunday attendance.</p>
                             </div>
 
-                            <div className="flex flex-wrap items-center gap-5 text-center">
+                            <div className="flex flex-wrap items-center gap-3 text-center">
                                 <span className="min-w-[74px]">
                                     <strong className="block text-xl font-bold text-slate-900">{user.referral?.total ?? 0}</strong>
                                     <span className="block text-xs text-slate-500">Total invited</span>
@@ -279,7 +279,7 @@ export default function Dashboard({
                             </div>
                         </div>
 
-                        <div className="mt-4 flex flex-wrap items-center gap-3">
+                        <div className="mt-3 flex flex-wrap items-center gap-2">
                             <input readOnly value={user.referral?.link ?? ''} aria-label="Referral link" className="min-w-[290px] flex-1 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-600" />
                             <button type="button" onClick={async () => { await navigator.clipboard.writeText(user.referral.link); setCopiedReferral(true); window.setTimeout(() => setCopiedReferral(false), 1800); }} className="rounded-full bg-red-600 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-red-500">{copiedReferral ? 'Copied' : 'Copy referral link'}</button>
                         </div>
@@ -287,30 +287,30 @@ export default function Dashboard({
                         <p className="mt-3 text-xs text-slate-500">Referral code: <span className="font-semibold tracking-wider text-slate-700">{user.referral?.code}</span></p>
                     </section>
 
-                    <div className="mt-6 grid gap-4 md:grid-cols-2">
-                        <Link href={route('training.dashboard')} className="rounded-2xl border border-red-100 bg-white p-5 shadow-sm transition hover:border-red-300 hover:bg-red-50">
+                    <div className="mt-3 grid grid-cols-1 items-start gap-2 md:grid-cols-12">
+                        <Link href={route('training.dashboard')} className="h-fit rounded-2xl border border-slate-200 bg-white p-3 shadow-[0_8px_22px_rgba(15,23,42,0.04)] transition hover:border-red-300 hover:bg-red-50 md:col-span-6">
                             <p className="text-xs font-semibold uppercase tracking-[0.25em] text-red-600">Learning</p>
                             <h2 className="mt-2 text-lg font-bold text-slate-900">Training progress</h2>
                             <p className="mt-3 text-sm text-slate-600">{trainingData?.stats?.total_enrolled ?? 0} enrolled, {trainingData?.stats?.in_progress ?? 0} in progress, {trainingData?.stats?.completed ?? 0} completed</p>
                         </Link>
-                        <Link href={route('community.index')} className="rounded-2xl border border-red-100 bg-white p-5 shadow-sm transition hover:border-red-300 hover:bg-red-50">
+                        <Link href={route('community.index')} className="h-fit rounded-2xl border border-slate-200 bg-white p-3 shadow-[0_8px_22px_rgba(15,23,42,0.04)] transition hover:border-red-300 hover:bg-red-50 md:col-span-6">
                             <p className="text-xs font-semibold uppercase tracking-[0.25em] text-red-600">Community</p>
                             <h2 className="mt-2 text-lg font-bold text-slate-900">Your community activity</h2>
                             <p className="mt-3 text-sm text-slate-600">{communityData?.community_stats?.total_communities ?? 0} communities, {communityData?.community_stats?.total_posts ?? 0} posts, {communityData?.community_stats?.mentorship_sessions ?? 0} mentorship sessions</p>
                         </Link>
                     </div>
 
-                    <div id="attendance" className="mt-5 grid scroll-mt-36 gap-4 xl:grid-cols-[1.3fr_0.7fr]">
-                        <div className="rounded-3xl border border-red-100 bg-white p-4 shadow-sm">
+                    <div id="attendance" className="mt-3 grid items-start scroll-mt-36 gap-2">
+                        <div className="h-fit rounded-[22px] border border-slate-200 bg-white p-3 shadow-[0_10px_28px_rgba(15,23,42,0.04)]">
                             <div className="mb-4 flex items-center justify-between gap-3">
                                 <div>
                                     <p className="text-xs font-semibold uppercase tracking-[0.25em] text-red-600">Overview</p>
-                                    <h2 className="mt-2 text-xl font-bold text-slate-900">Church health at a glance</h2>
+                                    <h2 className="mt-1 text-lg font-bold text-slate-900">Church health at a glance</h2>
                                 </div>
                             </div>
 
-                            <div className="grid gap-3 md:grid-cols-2">
-                                <div className="rounded-2xl border border-red-100 bg-red-50 p-4">
+                            <div className="grid gap-2 md:grid-cols-2">
+                                <div className="rounded-2xl border border-red-100 bg-red-50 p-3">
                                     <div className="flex items-center justify-between text-sm text-red-700">
                                         <span className="font-semibold">Attendance</span>
                                         <span>{churchHealth.attendance_change === null ? 'No prior data' : `${churchHealth.attendance_change >= 0 ? '+' : ''}${churchHealth.attendance_change}% vs last week`}</span>
@@ -319,7 +319,7 @@ export default function Dashboard({
                                     <p className="mt-2 text-sm text-slate-600">Members present in worship</p>
                                 </div>
 
-                                <div className="rounded-2xl border border-amber-100 bg-amber-50 p-4">
+                                <div className="rounded-2xl border border-amber-100 bg-amber-50 p-3">
                                     <div className="flex items-center justify-between text-sm text-amber-700">
                                         <span className="font-semibold">Prayer coverage</span>
                                         <span>Live</span>
@@ -328,7 +328,7 @@ export default function Dashboard({
                                     <p className="mt-2 text-sm text-slate-600">Prayer requests being supported</p>
                                 </div>
 
-                                <div className="rounded-2xl border border-red-100 bg-red-50 p-4">
+                                <div className="rounded-2xl border border-red-100 bg-red-50 p-3">
                                     <div className="flex items-center justify-between text-sm text-red-700">
                                         <span className="font-semibold">New visits</span>
                                         <span>This month</span>
@@ -337,7 +337,7 @@ export default function Dashboard({
                                     <p className="mt-2 text-sm text-slate-600">Visitors connected to the church</p>
                                 </div>
 
-                                <div className="rounded-2xl border border-red-100 bg-red-50 p-4">
+                                <div className="rounded-2xl border border-red-100 bg-red-50 p-3">
                                     <div className="flex items-center justify-between text-sm text-red-700">
                                         <span className="font-semibold">Service plan</span>
                                         <span>{churchHealth.next_service_date ?? 'To be announced'}</span>
@@ -348,32 +348,30 @@ export default function Dashboard({
                             </div>
                         </div>
 
-                        <div className="rounded-3xl border border-red-100 bg-white p-4 shadow-sm">
+                        {churchEvents.length > 0 && <div className="h-fit self-start rounded-[22px] border border-slate-200 bg-white p-3 shadow-[0_10px_28px_rgba(15,23,42,0.04)]">
                             <div className="flex items-center justify-between gap-3">
                                 <div>
                                     <p className="text-xs font-semibold uppercase tracking-[0.25em] text-red-600">Calendar</p>
-                                    <h2 className="mt-2 text-xl font-bold text-slate-900">Upcoming events</h2>
+                                    <h2 className="mt-1 text-lg font-bold text-slate-900">Upcoming events</h2>
                                 </div>
                                 <Link href={route('events')} className="rounded-full border border-red-200 bg-red-50 px-3 py-1.5 text-[10px] font-bold text-red-700 transition hover:bg-red-100">
                                     View all
                                 </Link>
                             </div>
-                            <div className="mt-4 space-y-3">
-                                {churchEvents.length > 0 ? churchEvents.map((event) => (
+                            <div className="mt-3 space-y-2">
+                                {churchEvents.map((event) => (
                                     <Link key={event.id} href={route('events.detail', event.id)} className="block rounded-2xl border border-slate-200 bg-slate-50 p-3 transition hover:border-red-200 hover:bg-red-50">
                                         <p className="truncate text-sm font-semibold text-slate-900">{event.title}</p>
                                         <p className="mt-1 text-xs text-slate-600">{event.date}{event.location ? ` · ${event.location}` : ''}</p>
                                     </Link>
-                                )) : (
-                                    <p className="rounded-2xl bg-red-50 p-3 text-sm text-slate-600">No upcoming events scheduled.</p>
-                                )}
+                                ))}
                             </div>
-                        </div>
+                        </div>}
 
                     </div>
 
-                    <div id="events" className="mt-6 grid scroll-mt-36 gap-4 xl:grid-cols-3">
-                        <section className="rounded-2xl border border-red-100 bg-white p-4 shadow-sm transition hover:shadow-md">
+                    <div id="events" className="mt-3 grid items-start scroll-mt-36 gap-2 md:grid-cols-2 xl:grid-cols-3">
+                        <section className="h-fit self-start rounded-[22px] border border-slate-200 bg-white p-3 shadow-[0_8px_22px_rgba(15,23,42,0.04)] transition hover:shadow-md">
                             <div className="mb-3 flex items-center justify-between gap-3">
                                 <div>
                                     <p className="text-[11px] font-black uppercase tracking-[0.24em] text-red-600">Actions</p>
@@ -398,7 +396,7 @@ export default function Dashboard({
                             </div>
                         </section>
 
-                        <section className="rounded-2xl border border-red-100 bg-white p-4 shadow-sm transition hover:shadow-md">
+                        {churchGroups.length > 0 && <section className="h-fit self-start rounded-[22px] border border-slate-200 bg-white p-3 shadow-[0_8px_22px_rgba(15,23,42,0.04)] transition hover:shadow-md">
                             <div className="mb-3 flex items-center justify-between gap-3">
                                 <div>
                                     <p className="text-[11px] font-black uppercase tracking-[0.24em] text-red-600">Community</p>
@@ -410,7 +408,7 @@ export default function Dashboard({
                             </div>
 
                             <div className="space-y-2">
-                                {churchGroups.length > 0 ? churchGroups.slice(0, 3).map((group) => (
+                                {churchGroups.slice(0, 3).map((group) => (
                                     <div key={group.name} className="rounded-xl border border-slate-200 bg-slate-50 p-3">
                                         <div className="flex items-center justify-between gap-3">
                                             <p className="truncate text-sm font-semibold text-slate-900">{group.name}</p>
@@ -418,11 +416,11 @@ export default function Dashboard({
                                         </div>
                                         <p className="mt-1 text-[11px] text-slate-600">{group.members}</p>
                                     </div>
-                                )) : <p className="rounded-xl bg-red-50 p-3 text-sm text-slate-600">No active small groups published yet.</p>}
+                                ))}
                             </div>
-                        </section>
+                        </section>}
 
-                        <section className="rounded-2xl border border-red-100 bg-white p-4 shadow-sm transition hover:shadow-md">
+                        <section className="h-fit self-start rounded-[22px] border border-slate-200 bg-white p-3 shadow-[0_8px_22px_rgba(15,23,42,0.04)] transition hover:shadow-md">
                             <div className="mb-3 flex items-center justify-between gap-3">
                                 <div>
                                     <p className="text-[11px] font-black uppercase tracking-[0.24em] text-red-600">Latest</p>
